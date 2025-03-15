@@ -1,0 +1,53 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-ast # Python syntax
+      - id: check-case-conflict # VERSION and version in same repo
+      - id: check-docstring-first # Python docs
+      - id: check-executables-have-shebangs # #!/bin/bash
+      - id: check-illegal-windows-names
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-shebang-scripts-are-executable
+      - id: check-symlinks
+      - id: check-toml
+      - id: check-xml
+      - id: check-yaml
+      - id: debug-statements # Python debug stuff
+      - id: detect-aws-credentials
+        args:
+          - --allow-missing-credentials
+      - id: detect-private-key
+      - id: end-of-file-fixer # Forces newline at the end
+      - id: mixed-line-ending
+      - id: name-tests-test
+      - id: pretty-format-json
+        args:
+          - --autofix
+      - id: requirements-txt-fixer
+      - id: sort-simple-yaml
+      - id: trailing-whitespace
+
+  - repo: https://github.com/psf/black-pre-commit-mirror
+    rev: 25.1.0
+    hooks:
+      - id: black
+      - id: black-jupyter
+
+  - repo: https://github.com/PyCQA/flake8
+    rev: 7.1.2
+    hooks:
+    - id: flake8
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.24.0
+    hooks:
+      - id: gitleaks
+
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.7
+    hooks:
+      - id: actionlint

@@ -11,7 +11,7 @@ class ForecastingMethod(ABC):
         pass
 
     def preprocess_data(X: ndarray, y: ndarray) -> dict[str, ndarray]:
-        """Note: Implemented within Abstract Class. Applies differencing and normalization to the input data"""
+        """Applies differencing and normalization to the input data"""
         pass
 
     @abstractmethod
@@ -23,7 +23,10 @@ class ForecastingMethod(ABC):
 
     @abstractmethod
     def save_weights(filepath: str) -> bool:
-        """Save the computed weights from training. Returns an error if training has not yet run or no weights have been loaded"""
+        """
+        Save the computed weights from training. Returns an error if training
+        has not yet run or no weights have been loaded
+        """
         pass
 
     @abstractmethod
