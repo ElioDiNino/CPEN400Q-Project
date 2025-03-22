@@ -31,7 +31,7 @@ class ForecastingMethod(ABC):
 
     @abstractmethod
     def train(
-        self, train_X: ndarray, train_y: ndarray, val_X: ndarray, val_y: ndarray
+        self, train_X: ndarray, train_y: ndarray
     ) -> None:
         """Run model training with training and validation data"""
         pass
@@ -53,23 +53,3 @@ class ForecastingMethod(ABC):
     def predict(self, X: ndarray) -> ndarray:
         """Predict future values based on input data"""
         pass
-
-class Test(ForecastingMethod):
-    def __init__(self):
-        pass
-
-    def train(
-        train_X: ndarray, train_y: ndarray, val_X: ndarray, val_y: ndarray
-    ) -> None:
-        pass
-
-    def save_weights(filepath: str) -> bool:
-        pass
-
-    def load_weights(filepath: str) -> bool:
-        pass
-
-    def predict(X: ndarray) -> ndarray:
-        pass
-obj = Test()
-print(obj.load_data('./data/paper-data.csv', 2))
