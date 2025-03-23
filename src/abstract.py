@@ -11,13 +11,37 @@ class ForecastingMethod(ABC):
 
     def load_data(
         self, filepath: str, windows_size: int = 12
-    ) -> dict[str, ndarray]:
+    ) -> tuple[ndarray, ndarray]:
+        """
+        Load data from a CSV file and convert it to a format that can be used
+        for time-series forecasting. No preprocessing is done here.
+
+        Args:
+            - filepath (str): Path to the CSV file. File should have a single
+              column of data where the first row is the header.
+            - windows_size (int): Number of data points to use for each
+              prediction. Default is 12.
+
+        Returns:
+            tuple:
+            - X (ndarray): 2D array of shape (n_examples, window_size) where
+              n_examples is the number of examples.
+            - y (ndarray): 1D array of shape (n_examples,) where
+              n_examples is the number of examples.
+        """
         with open(filepath, mode="r") as file:
             reader = csv.reader(file)
             data = list(reader)[1:]  # don't include the header
 
         # convert data to float
         data = [float(datapoint[0]) for datapoint in data]
+        if windows_size > len(data):
+            raise ValueError(
+                f"Window size {windows_size} must be smaller "
+                f"than the data size {len(data)}"
+            )
+
+        # create X and y
         X = np.zeros((len(data) - windows_size, windows_size))
         y = np.zeros(len(data) - windows_size)
 
@@ -26,7 +50,7 @@ class ForecastingMethod(ABC):
             X[i] = data[i : i + windows_size]
             y[i] = data[i + windows_size]
 
-        return {"X": X, "y": y}
+        return X, y
 
     def preprocess_data(self, X: ndarray, y: ndarray) -> dict[str, ndarray]:
         """Applies differencing and normalization to the input data"""
