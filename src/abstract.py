@@ -5,33 +5,34 @@ import numpy as np
 
 
 class ForecastingMethod(ABC):
-    def __init__(self):
-        """Basic initialization stuff"""
-        pass
-
+    @staticmethod
     def load_data(
-        self, filepath: str, windows_size: int = 12
+        filepath: str, windows_size: int = 12
     ) -> tuple[ndarray, ndarray]:
         """
         Load data from a CSV file and convert it to a format that can be used
         for time-series forecasting. No preprocessing is done here.
 
         Args:
-            - filepath (str): Path to the CSV file. File should have a single
+            filepath: Path to the desired CSV file. File should have a single
               column of data where the first row is the header.
-            - windows_size (int): Number of data points to use for each
+            windows_size: Number of data points to use for each
               prediction. Default is 12.
 
         Returns:
-            tuple:
-            - X (ndarray): 2D array of shape (n_examples, window_size) where
+            (X, y):
+            - X: 2D array of shape (n_examples, window_size) where
               n_examples is the number of examples.
-            - y (ndarray): 1D array of shape (n_examples,) where
+            - y: 1D array of shape (n_examples,) where
               n_examples is the number of examples.
+
+        Raises:
+            ValueError: If window_size >= len(data)
+            OSError: If the file does not exist
         """
         with open(filepath, mode="r") as file:
             reader = csv.reader(file)
-            data = list(reader)[1:]  # don't include the header
+            data = list(reader)[1:]  # don't include the header row
 
         # convert data to float
         data = [float(datapoint[0]) for datapoint in data]
@@ -52,29 +53,67 @@ class ForecastingMethod(ABC):
 
         return X, y
 
-    def preprocess_data(self, X: ndarray, y: ndarray) -> dict[str, ndarray]:
-        """Applies differencing and normalization to the input data"""
+    @staticmethod
+    def preprocess_data(X: ndarray, y: ndarray) -> tuple[ndarray, ndarray]:
+        """
+        Applies differencing and normalization to the input data.
+
+        Args:
+            X : Input data
+            y : Target data
+
+        Returns:
+            (X, y) : Tuple containing the preprocessed data
+        """
         pass
 
     @abstractmethod
     def train(self, train_X: ndarray, train_y: ndarray) -> None:
-        """Run model training with training and validation data"""
+        """
+        Train the forecasting model using the given data.
+
+        Args:
+            train_X : Training data
+            train_y : Training labels
+        """
         pass
 
     @abstractmethod
     def save_weights(self, filepath: str) -> bool:
         """
-        Save the computed weights from training. Returns an error if training
-        has not yet run or no weights have been loaded
+        Save the computed weights from training. Requires that the model has
+        been trained or weights have been loaded before saving successfully.
+
+        Args:
+            filepath : Path to the weights file to save
+
+        Returns:
+            bool : True if weights are saved successfully, False otherwise
         """
         pass
 
     @abstractmethod
     def load_weights(self, filepath: str) -> bool:
-        """Load saved weights from a file or data structure"""
+        """
+        Load saved weights from a file.
+
+        Args:
+            filepath : Path to the weights file to load
+
+        Returns:
+            bool : True if weights are loaded successfully, False otherwise
+        """
         pass
 
     @abstractmethod
     def predict(self, X: ndarray) -> ndarray:
-        """Predict future values based on input data"""
+        """
+        Predict future values based on input data.
+
+        Args:
+            X : Input data
+
+        Returns:
+            ndarray : Predicted values (y-hat)
+        """
         pass
