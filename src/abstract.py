@@ -35,7 +35,7 @@ class ForecastingMethod(ABC):
 
         # convert data to float
         data = [float(datapoint[0]) for datapoint in data]
-        if windows_size > len(data):
+        if windows_size >= len(data):
             raise ValueError(
                 f"Window size {windows_size} must be smaller "
                 f"than the data size {len(data)}"
