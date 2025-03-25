@@ -13,6 +13,8 @@ An implementation of "[Exploring Hybrid Quantum-Classical Methods for Practical 
 ## Contributions
 
 - **Cihan Bosnali**
+  - Neural network implementation
+  - Abstract base class for models
 - **Dante Prins**
 - **Elio Di Nino**
   - Repository setup
