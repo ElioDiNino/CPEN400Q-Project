@@ -29,12 +29,12 @@ class NeuralNet(ForecastingMethod):
         """
         model = keras.Sequential(
             [
-                keras.layers.Dense(12, activation='relu'),
-                keras.layers.Dense(12, activation='relu'),
+                keras.layers.Dense(12, activation="relu"),
+                keras.layers.Dense(12, activation="relu"),
                 keras.layers.Dense(1),
             ]
         )
-        model.compile(optimizer='adam', loss='mse')
+        model.compile(optimizer="adam", loss="mse")
         return model
 
     def train(self, train_X, train_y):
@@ -53,8 +53,8 @@ class NeuralNet(ForecastingMethod):
         return self.model.predict(np.expand_dims(X, axis=0))
 
 
-if __name__ == '__main__':
-    X, y = ForecastingMethod.load_data('../data/paper-data.csv')
+if __name__ == "__main__":
+    X, y = ForecastingMethod.load_data("../data/paper-data.csv")
     train_X, _, train_y, _ = train_test_split(
         X, y, test_size=0.1, shuffle=False
     )
