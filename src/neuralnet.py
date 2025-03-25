@@ -27,13 +27,14 @@ class NeuralNet(ForecastingMethod):
         Use keras API to build neural net and compile it with
         mean squared error loss as specified in paper
         """
-        model = keras.Sequential([
-            keras.layers.Dense(12, activation='relu'),
-            keras.layers.Dense(12, activation='relu'),
-            keras.layers.Dense(1)
-        ])
-        model.compile(optimizer='adam',
-                      loss='mse')
+        model = keras.Sequential(
+            [
+                keras.layers.Dense(12, activation='relu'),
+                keras.layers.Dense(12, activation='relu'),
+                keras.layers.Dense(1),
+            ]
+        )
+        model.compile(optimizer='adam', loss='mse')
         return model
 
     def train(self, train_X, train_y):
@@ -41,7 +42,7 @@ class NeuralNet(ForecastingMethod):
         self.model.fit(train_X, train_y, epochs=200, batch_size=8)
 
     def save_weights(self, filepath):
-        self.model.save(filepath+".keras")
+        self.model.save(filepath + ".keras")
         return True
 
     def load_weights(self, filepath):
@@ -54,16 +55,18 @@ class NeuralNet(ForecastingMethod):
 
 if __name__ == '__main__':
     X, y = ForecastingMethod.load_data('../data/paper-data.csv')
-    train_X, _, train_y, _ = train_test_split(X, y, test_size=0.1, shuffle=False)
+    train_X, _, train_y, _ = train_test_split(
+        X, y, test_size=0.1, shuffle=False
+    )
     # Training
     nn = NeuralNet()
     nn.train(train_X, train_y)
     training_timestamp = str(int(time.time()))
-    nn.save_weights("neural_net_"+training_timestamp)
+    nn.save_weights("neural_net_" + training_timestamp)
     # Testing
     predictions = nn.model.predict(X)
     x_axis = range(len(y))
     plt.plot(x_axis, predictions, label="Predicted")
     plt.plot(x_axis, y, label="Correct")
     plt.legend()
-    plt.savefig("neural_net_"+training_timestamp+".png")
+    plt.savefig("neural_net_" + training_timestamp + ".png")
