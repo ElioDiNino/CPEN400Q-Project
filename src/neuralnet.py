@@ -45,14 +45,14 @@ class NeuralNet(ForecastingMethod):
         try:
             self.model.save(filepath + ".keras")
             return True
-        except:
+        except Exception:
             return False
 
     def load_weights(self, filepath):
         try:
             self.model = keras.saving.load_model(filepath)
             return True
-        except:
+        except Exception:
             return False
 
     def predict(self, X):
