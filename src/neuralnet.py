@@ -22,7 +22,7 @@ class NeuralNet(ForecastingMethod):
     def __init__(self):
         self.model = None
 
-    def build_model(self):
+    def __build_model(self):
         """
         Use keras API to build neural net and compile it with
         mean squared error loss as specified in paper
@@ -38,16 +38,22 @@ class NeuralNet(ForecastingMethod):
         return model
 
     def train(self, train_X, train_y):
-        self.model = self.build_model()
+        self.model = self.__build_model()
         self.model.fit(train_X, train_y, epochs=200, batch_size=8)
 
     def save_weights(self, filepath):
-        self.model.save(filepath + ".keras")
-        return True
+        try:
+            self.model.save(filepath + ".keras")
+            return True
+        except:
+            return False
 
     def load_weights(self, filepath):
-        self.model = keras.saving.load_model(filepath)
-        return True
+        try:
+            self.model = keras.saving.load_model(filepath)
+            return True
+        except:
+            return False
 
     def predict(self, X):
         return self.model.predict(np.expand_dims(X, axis=0))
