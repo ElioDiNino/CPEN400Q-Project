@@ -117,6 +117,8 @@ class ForecastingMethod(ABC):
             for datapoint in data:
                 writer.writerow([datapoint])
 
+        return new_filepath
+
     @abstractmethod
     def train(self, train_X: ndarray, train_y: ndarray) -> None:
         """
@@ -167,6 +169,3 @@ class ForecastingMethod(ABC):
             ndarray: Predicted values (y-hat)
         """
         pass
-
-
-ForecastingMethod.preprocess_data("./data/paper-data.csv", False, True)
