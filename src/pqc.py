@@ -13,11 +13,11 @@ class PQC_Forecast(ForecastingMethod):
         ForecastingMethod (class): The base class for forecasting methods.
     """
 
-    def __init__(self, optimizer, n_wires, n_layers, dev):
+    def __init__(self, optimizer, n_wires, n_layers):
         super().__init__()
         self.n_wires = n_wires
         self.n_layers = n_layers
-        self.dev = dev
+        self.dev = qml.device("default.qubit", wires=n_wires)
         self.theta_ary = np.zeros((self.n_layers, self.n_wires * 2))
         self.optimizer = optimizer
 
@@ -77,6 +77,14 @@ class PQC_Forecast(ForecastingMethod):
         apply_layer(theta_ary[1])
 
         return qml.expval(qml.PauliZ(0))
+
+    def draw_circuit(self):
+        """
+        Draw the quantum circuit.
+        """
+        return qml.draw_mpl(self.pqc_circuit, decimals=3)(
+            self.n_wires, self.theta_ary
+        )
 
     def train(self, train_X: ndarray, train_y: ndarray) -> None:
         # use scipy.optimize.minimize to optimize the theta_ary
