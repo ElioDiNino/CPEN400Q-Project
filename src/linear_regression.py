@@ -6,9 +6,15 @@ from sklearn.linear_model import (
     Lasso,
 )
 from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import mean_squared_error
 
 
 class LinearRegression(ForecastingMethod):
+    """
+    This class implements a linear regression model with optional
+    regularization (L1 or L2).
+    """
+
     def __init__(
         self,
         fit_intercept: bool = True,
@@ -68,7 +74,10 @@ class LinearRegression(ForecastingMethod):
                 )
 
             grid_search = GridSearchCV(
-                base_model, param_grid, cv=self.cv_folds
+                base_model,
+                param_grid,
+                cv=self.cv_folds,
+                scoring="neg_mean_squared_error",
             )
             grid_search.fit(train_X, train_y)
             self.model = grid_search.best_estimator_
@@ -101,13 +110,14 @@ class LinearRegression(ForecastingMethod):
 
     def score(self, X: ndarray, y: ndarray) -> float:
         """
-        Compute the accuracy of the model
+        Compute the mean squared error of the model.
 
         Args:
-            X : Input data
-            y : True labels
+            X: Input data
+            y: True labels
 
         Returns:
-            float : The accuracy of the model on the given data
+            float: The mean squared error of the model on the given data
         """
-        return self.model.score(X, y)
+        predictions = self.predict(X)
+        return mean_squared_error(y, predictions)
