@@ -83,7 +83,7 @@ class PQC_Forecast(ForecastingMethod):
         Draw the quantum circuit.
         """
         return qml.draw_mpl(self.pqc_circuit, decimals=3)(
-            self.n_wires, self.theta_ary
+            np.zeros(self.n_wires), self.theta_ary
         )
 
     def train(self, train_X: ndarray, train_y: ndarray) -> None:
