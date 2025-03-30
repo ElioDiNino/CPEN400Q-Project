@@ -68,7 +68,7 @@ class ForecastingMethod(ABC):
         difference: bool,
         scale_to_range: bool,
         training_data_cutoff: float = 2 / 3,
-    ) -> None:
+    ) -> str:
         """
         Optionally applies differencing and scaling to the data and writes
         into a new CSV file with name having "_processed" appended.
