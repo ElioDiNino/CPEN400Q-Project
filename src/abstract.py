@@ -5,6 +5,15 @@ import numpy as np
 
 
 class ForecastingMethod(ABC):
+    """
+    Abstract base class for forecasting methods.
+
+    This class defines the interface for all forecasting methods. It includes
+    methods for loading data, preprocessing data, training the model, saving
+    and loading weights, and making predictions. The actual implementation of
+    these methods is be provided by subclasses.
+    """
+
     @staticmethod
     def load_data(
         filepath: str, windows_size: int = 12
@@ -59,11 +68,11 @@ class ForecastingMethod(ABC):
         Applies differencing and normalization to the input data.
 
         Args:
-            X : Input data
-            y : Target data
+            X: Input data
+            y: Target data
 
         Returns:
-            (X, y) : Tuple containing the preprocessed data
+            (X, y): Tuple containing the preprocessed data
         """
         pass
 
@@ -73,8 +82,8 @@ class ForecastingMethod(ABC):
         Train the forecasting model using the given data.
 
         Args:
-            train_X : Training data
-            train_y : Training labels
+            train_X: Training data
+            train_y: Training labels
         """
         pass
 
@@ -85,10 +94,10 @@ class ForecastingMethod(ABC):
         been trained or weights have been loaded before saving successfully.
 
         Args:
-            filepath : Path to the weights file to save
+            filepath: Path to the weights file to save
 
         Returns:
-            bool : True if weights are saved successfully, False otherwise
+            bool: True if weights are saved successfully, False otherwise
         """
         pass
 
@@ -98,10 +107,10 @@ class ForecastingMethod(ABC):
         Load saved weights from a file.
 
         Args:
-            filepath : Path to the weights file to load
+            filepath: Path to the weights file to load
 
         Returns:
-            bool : True if weights are loaded successfully, False otherwise
+            bool: True if weights are loaded successfully, False otherwise
         """
         pass
 
@@ -111,9 +120,9 @@ class ForecastingMethod(ABC):
         Predict future values based on input data.
 
         Args:
-            X : Input data
+            X: Input data
 
         Returns:
-            ndarray : Predicted values (y-hat)
+            ndarray: Predicted values (y-hat)
         """
         pass
