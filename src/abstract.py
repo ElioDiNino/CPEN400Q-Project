@@ -74,15 +74,19 @@ class ForecastingMethod(ABC):
         into a new CSV file with name having "_processed" appended.
 
         Args:
-            filepath : Path to the CSV file containing the data
-            difference : Boolean indicating whether to apply differencing
-            scale_to_range : Boolean indicating whether to scale the data
+            filepath: Path to the CSV file containing the data
+            difference: Boolean indicating whether to apply differencing
+            scale_to_range: Boolean indicating whether to scale the data
                 to a specific range
             training_data_cutoff : Fraction of data to use for scaling
 
         Returns:
-            tuple : New file path, min value for inverse scaling,
-                max value for inverse scaling, and initial value for
+            (newFilepath, min_value_prescale, max_value_prescale,
+            initial_value_predifference):
+            - newFilepath: Path to the new CSV file with processed data
+            - min_value_prescale: Minimum value used for scaling
+            - max_value_prescale: Maximum value used for scaling
+            - initial_value_predifference: Initial value used for
                 differencing
         """
         min_value_prescale = None
@@ -154,15 +158,17 @@ class ForecastingMethod(ABC):
         """
         Post-process the data after prediction. This includes inverse
         differencing and inverse scaling.
+
         Args:
-            processed_data : Data after prediction
-            min_value : Minimum value used for scaling
-            max_value : Maximum value used for scaling
-            initial_data : Initial data used for differencing
-            difference : Boolean indicating whether differencing was applied
-            scale_to_range : Boolean indicating whether scaling was applied
+            processed_data: Data after prediction
+            min_value: Minimum value used for scaling
+            max_value: Maximum value used for scaling
+            initial_data: Initial data used for differencing
+            difference: Boolean indicating whether differencing was applied
+            scale_to_range: Boolean indicating whether scaling was applied
+
         Returns:
-            ndarray : Post-processed data
+            ndarray: Post-processed data
         """
 
         # Convert the input data to a NumPy array.
