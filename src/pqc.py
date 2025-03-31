@@ -8,10 +8,8 @@ import copy
 
 class PQC_Forecast(ForecastingMethod):
     """
-    A class that implements a quantum circuit for forecasting.
-
-    Args:
-        ForecastingMethod (class): The base class for forecasting methods.
+    A class that implements a parameterized quantum circuit (PQC) for
+    forecasting.
     """
 
     def __init__(self, optimizer, n_wires, n_layers):
@@ -32,8 +30,8 @@ class PQC_Forecast(ForecastingMethod):
         RX and RY rotations followed by a series of CNOT gates.
 
         Args:
-            phi_ary (np.ndarray): Array of angles for encoding the data.
-            theta_ary (np.ndarray): 2D array of angles theta_ary[layer][gate]
+            phi_ary: Array of angles for encoding the data.
+            theta_ary: 2D array of angles theta_ary[layer][gate]
             for both RX and RY gates.
 
         Returns:

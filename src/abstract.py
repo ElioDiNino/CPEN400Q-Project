@@ -70,15 +70,14 @@ class ForecastingMethod(ABC):
         training_data_cutoff: float = 2 / 3,
     ) -> tuple[str | float | int]:
         """
-        Optionally applies differencing and scaling to the data and writes
-        into a new CSV file with name having "_processed" appended.
+        Optionally applies differencing and scaling to the data, writing
+        the result into a new CSV file with "_processed" appended.
 
         Args:
             filepath: Path to the CSV file containing the data
-            difference: Boolean indicating whether to apply differencing
-            scale_to_range: Boolean indicating whether to scale the data
-                to a specific range
-            training_data_cutoff : Fraction of data to use for scaling
+            difference: Whether to apply differencing
+            scale_to_range: Whether to scale the data to a specific range
+            training_data_cutoff: Proportion of data to use for scaling
 
         Returns:
             (newFilepath, min_value_prescale, max_value_prescale,
@@ -118,7 +117,7 @@ class ForecastingMethod(ABC):
             max_value = np.max(training_data)
             # scale the data to the range of 0 to 1
             data = (data - min_value) / (max_value - min_value)
-            # normalize to range of -0.25 to 0.25(based on paper)
+            # normalize to range of -0.25 to 0.25 (based on paper)
             data = data * 0.5 - 0.25
             # convert to list
             data = data.tolist()
@@ -164,8 +163,8 @@ class ForecastingMethod(ABC):
             min_value: Minimum value used for scaling
             max_value: Maximum value used for scaling
             initial_data: Initial data used for differencing
-            difference: Boolean indicating whether differencing was applied
-            scale_to_range: Boolean indicating whether scaling was applied
+            difference: Whether differencing was applied
+            scale_to_range: Whether scaling was applied
 
         Returns:
             ndarray: Post-processed data
