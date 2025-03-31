@@ -58,6 +58,9 @@ def plot_sales_growth(
         pred_label: Label for the predicted data line.
         pred_linestyle: Line style for the predicted data line.
         pred_color: Color for the predicted data line.
+        title: title for the plot. Leave empty for no title.
+        train_test_split: Index to indicate the train/test split in the data.
+            Leave empty for no split line.
 
     Returns:
         None, but displays a plot.
