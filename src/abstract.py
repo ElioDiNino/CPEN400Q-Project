@@ -68,7 +68,7 @@ class ForecastingMethod(ABC):
         difference: bool,
         scale_to_range: bool,
         training_data_cutoff: float = 2 / 3,
-    ) -> tuple[str | float | int]:
+    ) -> tuple[str, float, float, float]:
         """
         Optionally applies differencing and scaling to the data, writing
         the result into a new CSV file with "_processed" appended.
