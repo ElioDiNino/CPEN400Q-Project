@@ -63,18 +63,59 @@ class ForecastingMethod(ABC):
         return X, y
 
     @staticmethod
-    def preprocess_data(X: ndarray, y: ndarray) -> tuple[ndarray, ndarray]:
+    def preprocess_data(
+        filepath: str,
+        difference: bool,
+        scale_to_range: bool,
+        training_data_cutoff: float = 2 / 3,
+    ) -> None:
         """
-        Applies differencing and normalization to the input data.
+        Optionally applies differencing and scaling to the data and writes
+        into a new CSV file with name having "_processed" appended.
 
         Args:
-            X: Input data
-            y: Target data
-
-        Returns:
-            (X, y): Tuple containing the preprocessed data
+            filepath : Path to the CSV file containing the data
+            difference : Boolean indicating whether to apply differencing
+            scale_to_range : Boolean indicating whether to scale the data
+                to a specific range
         """
-        pass
+        # read the data from the CSV file
+        with open(filepath, mode="r") as file:
+            reader = csv.reader(file)
+            data = list(reader)[1:]
+        # convert data to float
+        data = [float(datapoint[0]) for datapoint in data]
+
+        # apply differencing
+        if difference:
+            data = np.diff(data, n=1)
+            # convert to list
+            data = data.tolist()
+
+        # apply scaling
+        if scale_to_range:
+            training_data = data[: int(len(data) * training_data_cutoff)]
+            # find the min and max values
+            min_value = np.min(training_data)
+            max_value = np.max(training_data)
+            # scale the data to the range of 0 to 1
+            data = (data - min_value) / (max_value - min_value)
+            # normalize to range of -0.25 to 0.25(based on paper)
+            data = data * 0.5 - 0.25
+            # convert to list
+            data = data.tolist()
+
+        # create and write to a CSV with original name + "_processed"
+        new_filepath = filepath.split("/")
+        new_filepath[-1] = (
+            new_filepath[-1].split(".")[0] + "_processed.csv"
+        )  # append "_processed" to the filename
+        new_filepath = "/".join(new_filepath)  # join the list back together
+        with open(new_filepath, mode="w", newline="") as file:
+            writer = csv.writer(file)
+            writer.writerow(["data"])
+            for datapoint in data:
+                writer.writerow([datapoint])
 
     @abstractmethod
     def train(self, train_X: ndarray, train_y: ndarray) -> None:
@@ -126,3 +167,6 @@ class ForecastingMethod(ABC):
             ndarray: Predicted values (y-hat)
         """
         pass
+
+
+ForecastingMethod.preprocess_data("./data/paper-data.csv", False, True)
