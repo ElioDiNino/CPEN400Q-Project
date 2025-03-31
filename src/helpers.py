@@ -45,6 +45,8 @@ def plot_sales_growth(
     pred_label="Predicted",
     pred_linestyle=None,
     pred_color="red",
+    title="",
+    train_test_split=None,
 ):
     """
     Plot sales growth over time.
@@ -74,12 +76,21 @@ def plot_sales_growth(
         linestyle=pred_linestyle,
         color=pred_color,
     )
+    plt.title(title)
     plt.ylabel("M\u20ac")  # Unicode for Euro sign
     plt.xticks(
         range(0, len(months), max(1, len(months) // 10)),  # Show fewer labels
         rotation=45,
         ha="right",
     )
+
+    if train_test_split is not None:
+        plt.axvline(
+            x=months[train_test_split],
+            color="black",
+            linestyle="--",
+            label="Train/Test Split",
+        )
     plt.legend()
     plt.grid()
     plt.show()
