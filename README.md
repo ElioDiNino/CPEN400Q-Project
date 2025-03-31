@@ -25,5 +25,6 @@ An implementation of "[Exploring Hybrid Quantum-Classical Methods for Practical 
     - Ruleset to require pull requests to main
   - Abstract base class for models
 - **Richard Sun**
+  - PQC Implementation
+  - Dataset loading, preprocessing, and postprocessing
   - Abstract base class for models
-  - Shared data loading and preprocessing code
