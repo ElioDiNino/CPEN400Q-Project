@@ -83,8 +83,9 @@ class ForecastingMethod(ABC):
         with open(filepath, mode="r") as file:
             reader = csv.reader(file)
             data = list(reader)[1:]
+
         # convert data to float
-        data = np.ndarray([float(datapoint[0]) for datapoint in data])
+        data = np.array([float(datapoint[0]) for datapoint in data])
 
         # apply differencing
         if difference:
