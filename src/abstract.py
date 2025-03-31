@@ -68,7 +68,7 @@ class ForecastingMethod(ABC):
         difference: bool,
         scale_to_range: bool,
         training_data_cutoff: float = 2 / 3,
-    ) -> str:
+    ) -> tuple[str | float | int]:
         """
         Optionally applies differencing and scaling to the data and writes
         into a new CSV file with name having "_processed" appended.
@@ -78,7 +78,17 @@ class ForecastingMethod(ABC):
             difference : Boolean indicating whether to apply differencing
             scale_to_range : Boolean indicating whether to scale the data
                 to a specific range
+            training_data_cutoff : Fraction of data to use for scaling
+
+        Returns:
+            tuple : New file path, min value for inverse scaling,
+                max value for inverse scaling, and initial value for
+                differencing
         """
+        min_value_prescale = None
+        max_value_prescale = None
+        initial_value_predifference = None
+
         # read the data from the CSV file
         with open(filepath, mode="r") as file:
             reader = csv.reader(file)
@@ -89,6 +99,9 @@ class ForecastingMethod(ABC):
 
         # apply differencing
         if difference:
+            # save the initial data for inverse differencing
+            initial_value_predifference = data[0]
+            # apply differencing
             data = np.diff(data, n=1)
             # convert to list
             data = data.tolist()
@@ -106,6 +119,10 @@ class ForecastingMethod(ABC):
             # convert to list
             data = data.tolist()
 
+            # save the min and max values for inverse scaling
+            min_value_prescale = min_value
+            max_value_prescale = max_value
+
         # create and write to a CSV with original name + "_processed"
         new_filepath = filepath.split("/")
         new_filepath[-1] = (
@@ -118,7 +135,63 @@ class ForecastingMethod(ABC):
             for datapoint in data:
                 writer.writerow([datapoint])
 
-        return new_filepath
+        return (
+            new_filepath,
+            min_value_prescale,
+            max_value_prescale,
+            initial_value_predifference,
+        )
+
+    @staticmethod
+    def post_process_data(
+        processed_data: ndarray,
+        min_value: float,
+        max_value: float,
+        initial_value: float,
+        difference: bool = False,
+        scale_to_range: bool = False,
+    ) -> ndarray:
+        """
+        Post-process the data after prediction. This includes inverse
+        differencing and inverse scaling.
+        Args:
+            processed_data : Data after prediction
+            min_value : Minimum value used for scaling
+            max_value : Maximum value used for scaling
+            initial_data : Initial data used for differencing
+            difference : Boolean indicating whether differencing was applied
+            scale_to_range : Boolean indicating whether scaling was applied
+        Returns:
+            ndarray : Post-processed data
+        """
+
+        # Convert the input data to a NumPy array.
+        data = np.array(processed_data)
+
+        # Inverse scaling
+        if scale_to_range:
+            if min_value is None or max_value is None:
+                raise ValueError(
+                    "Saved min and max values (min_value_prescale, "
+                    "max_value_prescale) are required to invert scaling."
+                )
+
+            # Inverse of the range adjustment:
+            normalized = (data + 0.25) / 0.5
+            # Inverse of the normalization:
+            data = normalized * (max_value - min_value) + min_value
+
+        # Inverse differencing
+        if difference:
+            if initial_value is None:
+                raise ValueError(
+                    "initial_value must be provided to reverse differencing."
+                )
+            # Prepend the original first value and perform a cumulative sum
+            data = np.concatenate(([initial_value], data))
+            data = np.cumsum(data)
+
+        return data
 
     @abstractmethod
     def train(self, train_X: ndarray, train_y: ndarray) -> None:
