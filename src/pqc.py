@@ -3,6 +3,7 @@ import numpy as np
 import scipy as sp
 from abstract import ForecastingMethod
 from numpy import ndarray
+import copy
 
 
 class PQC_Forecast(ForecastingMethod):
@@ -87,6 +88,10 @@ class PQC_Forecast(ForecastingMethod):
         )
 
     def train(self, train_X: ndarray, train_y: ndarray) -> None:
+        # deep copy train_X and train_y
+        train_X = copy.deepcopy(train_X)
+        train_y = copy.deepcopy(train_y)
+
         # use scipy.optimize.minimize to optimize the theta_ary
         def cost_function(theta_ary_flattened):
             mean_squared_error = 0
