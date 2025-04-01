@@ -7,14 +7,14 @@ it trains a new model and tests using paper data
 
 import time
 from sklearn.model_selection import train_test_split
-from tensorflow import keras
+import keras
 import numpy as np
 import matplotlib.pyplot as plt
 
 from abstract import ForecastingMethod
 
 
-class NeuralNet(ForecastingMethod):
+class NeuralNetwork(ForecastingMethod):
     """
     A neural network implemented according to the specifications in the paper.
     """
@@ -65,7 +65,7 @@ if __name__ == "__main__":
         X, y, test_size=0.1, shuffle=False
     )
     # Training
-    nn = NeuralNet()
+    nn = NeuralNetwork()
     nn.train(train_X, train_y)
     training_timestamp = str(int(time.time()))
     nn.save_weights("neural_net_" + training_timestamp)
