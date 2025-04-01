@@ -1,5 +1,6 @@
 black==25.1.0
 flake8==7.1.2
+keras==3.9.1
 matplotlib==3.10.1
 numpy==2.0.2
 pennylane==0.40.0
