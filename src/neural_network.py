@@ -8,7 +8,6 @@ it trains a new model and tests using paper data
 import time
 from sklearn.model_selection import train_test_split
 import keras
-import numpy as np
 import matplotlib.pyplot as plt
 
 from abstract import ForecastingMethod
@@ -20,7 +19,7 @@ class NeuralNetwork(ForecastingMethod):
     """
 
     def __init__(self):
-        self.model = None
+        self.model: keras.Sequential | None = None
 
     def __build_model(self):
         """
@@ -56,7 +55,7 @@ class NeuralNetwork(ForecastingMethod):
             return False
 
     def predict(self, X):
-        return self.model.predict(np.expand_dims(X, axis=0))
+        return self.model.predict(X)
 
 
 if __name__ == "__main__":
@@ -68,9 +67,9 @@ if __name__ == "__main__":
     nn = NeuralNetwork()
     nn.train(train_X, train_y)
     training_timestamp = str(int(time.time()))
-    nn.save_weights("neural_net_" + training_timestamp)
+    nn.save_weights("../weights/neural_net_" + training_timestamp)
     # Testing
-    predictions = nn.model.predict(X)
+    predictions = nn.predict(X)
     x_axis = range(len(y))
     plt.plot(x_axis, predictions, label="Predicted")
     plt.plot(x_axis, y, label="Correct")
