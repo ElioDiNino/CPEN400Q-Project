@@ -6,7 +6,7 @@ from numpy import ndarray
 import copy
 
 
-class PQC_Forecast(ForecastingMethod):
+class PQC(ForecastingMethod):
     """
     A class that implements a parameterized quantum circuit (PQC) for
     forecasting.
