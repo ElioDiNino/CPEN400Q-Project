@@ -3,6 +3,8 @@ from datetime import date
 from dateutil.relativedelta import relativedelta
 import numpy as np
 
+from common import WINDOW_SIZE
+
 
 def plot_loss(
     iterations,
@@ -48,7 +50,7 @@ def plot_sales_growth(
     pred_color="red",
     title="",
     train_test_split=None,
-    window_size=12,
+    window_size=WINDOW_SIZE,
 ):
     """
     Plot sales growth over time.
