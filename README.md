@@ -9,31 +9,33 @@ The goal of this project is to implement and compare both classical and hybrid q
 The repository is structured as follows:
 ```
 ├─ .flake8                   # Flake8 (Python formatting check) configuration
+├─ .gitignore                # Git ignore file
 ├─ .pre-commit-config.yaml   # Pre-commit configuration (automatic formatting and other checks)
 ├─ README.md
 ├─ requirements.txt          # Required packages
 ├─ .github
 │  └─ workflows
 │     └─ pre-commit.yml      # GitHub Actions workflow to enforce pre-commit hooks
+├─ data                      # Datasets
+│  ├─ paper-data.csv
+│  └─ paper-data-processed.csv
 ├─ documents
 │  ├─ report.pdf             # Final report
 │  └─ presentation.pdf       # In-class presentation
-├─ data                      # Datasets
-│  ├─ paper-data.csv
-│  └─ paper-data_processed.csv
 ├─ models                    # Trained models/weights
 │  ├─ pqc_cobyla.npy
 │  └─ pqc_lbfgsb.npy
 └─ src
    ├─ abstract.py            # Abstract base class for all the models
-   ├─ constants.py           # Constants used for the models
+   ├─ common.py              # Common functions and variables for all models
    ├─ demo.ipynb             # Jupyter notebook to demonstrate the models
    ├─ helpers.py             # Helper functions for graphing
    ├─ linear_regression.py   # Linear regression model
    ├─ neural_network.py      # Neural network model
    ├─ plots.py               # Final plot generation for our report
    ├─ pqc.py                 # Parameterized Quantum Circuit (PQC) model
-   └─ train.py               # Training script for all models
+   ├─ train.py               # Training script for all models
+   └─ vqls.py                # Variational Quantum Linear Regression (VQLS) model
 ```
 
 ### Framework Choices
