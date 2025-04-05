@@ -1,12 +1,14 @@
-from abstract import ForecastingMethod
-from numpy import ndarray, fromfile
+from numpy import ndarray
+from pickle import dump, load
 from sklearn.linear_model import (
     LinearRegression as SklearnLinearRegression,
     Ridge,
     Lasso,
 )
 from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import mean_squared_error
+
+from common import get_paper_data
+from abstract import ForecastingMethod
 
 
 class LinearRegression(ForecastingMethod):
@@ -73,6 +75,7 @@ class LinearRegression(ForecastingMethod):
                     "Invalid regularization type. Use 'l1', 'l2', or None."
                 )
 
+            # Use GridSearchCV to find the best hyperparameters
             grid_search = GridSearchCV(
                 base_model,
                 param_grid,
@@ -83,24 +86,17 @@ class LinearRegression(ForecastingMethod):
             self.model = grid_search.best_estimator_
 
     def save_weights(self, filepath: str) -> bool:
-        if self.model is None or self.model.coef_ is None:
+        try:
+            with open(filepath + ".pkl", "wb") as f:
+                dump(self.model, f, protocol=5)
+        except Exception:
             return False
-
-        self.model.coef_.tofile(filepath)
         return True
 
     def load_weights(self, filepath: str) -> bool:
-        if self.regularization == "l2":
-            self.model = Ridge(fit_intercept=self.fit_intercept)
-        elif self.regularization == "l1":
-            self.model = Lasso(fit_intercept=self.fit_intercept)
-        else:
-            self.model = SklearnLinearRegression(
-                fit_intercept=self.fit_intercept
-            )
-
         try:
-            self.model.coef_ = fromfile(filepath)
+            with open(filepath, "rb") as f:
+                self.model = load(f)
         except FileNotFoundError:
             return False
         return True
@@ -108,16 +104,24 @@ class LinearRegression(ForecastingMethod):
     def predict(self, X: ndarray) -> ndarray:
         return self.model.predict(X)
 
-    def score(self, X: ndarray, y: ndarray) -> float:
-        """
-        Compute the mean squared error of the model.
 
-        Args:
-            X: Input data
-            y: True labels
+def train():
+    """
+    Train the linear regression model on the paper data
+    """
+    print("\nTraining Linear Regression...")
 
-        Returns:
-            float: The mean squared error of the model on the given data
-        """
-        predictions = self.predict(X)
-        return mean_squared_error(y, predictions)
+    _, X_train, X_test, y_train, y_test, _ = get_paper_data()
+
+    # Train the model
+    lr = LinearRegression(fit_intercept=True, regularization=None)
+    lr.train(X_train, y_train)
+    lr.save_weights("../models/linear_regression")
+
+    # Evaluate the model
+    print(f"Training Loss (MSE): {lr.score(X_train, y_train)}")
+    print(f"Testing Loss (MSE): {lr.score(X_test, y_test)}")
+
+
+if __name__ == "__main__":
+    train()

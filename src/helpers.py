@@ -1,6 +1,9 @@
 import matplotlib.pyplot as plt
 from datetime import date
 from dateutil.relativedelta import relativedelta
+import numpy as np
+
+from common import WINDOW_SIZE
 
 
 def plot_loss(
@@ -47,6 +50,7 @@ def plot_sales_growth(
     pred_color="red",
     title="",
     train_test_split=None,
+    window_size=WINDOW_SIZE,
 ):
     """
     Plot sales growth over time.
@@ -61,6 +65,9 @@ def plot_sales_growth(
         title: title for the plot. Leave empty for no title.
         train_test_split: Index to indicate the train/test split in the data.
             Leave empty for no split line.
+        window_size: The size of the window used for predictions.
+            Note: This is used to add empty values to the beginning of
+            sales_growth_pred to align with the actual data.
 
     Returns:
         None, but displays a plot.
@@ -70,6 +77,12 @@ def plot_sales_growth(
         (start_date + relativedelta(months=i)).strftime("%Y-%m")
         for i in range(len(sales_growth))
     ]
+
+    # Add empty values to the beginning of sales_growth_pred
+    sales_growth_pred = np.concatenate(
+        (np.empty((window_size,), dtype=object), sales_growth_pred)
+    )
+
     plt.figure(figsize=(10, 2.5))
     plt.plot(months, sales_growth, label="Data", color="grey")
     plt.plot(
@@ -82,10 +95,11 @@ def plot_sales_growth(
     plt.title(title)
     plt.ylabel("M\u20ac")  # Unicode for Euro sign
     plt.xticks(
-        range(0, len(months), max(1, len(months) // 10)),  # Show fewer labels
+        range(6, len(months), 6),  # Show every 6th month
         rotation=45,
         ha="right",
     )
+    plt.xlim([0, len(months) - 1])  # Remove padding from either side
 
     if train_test_split is not None:
         plt.axvline(
