@@ -162,7 +162,7 @@ def train():
 
     print("\nTraining PQC...")
 
-    X, X_train, _, y_train, y_test, split_idx = get_paper_data()
+    _, X_train, X_test, y_train, y_test, _ = get_paper_data()
 
     # Train the models
     pqc_model_lbfgsb = PQC(
@@ -178,23 +178,12 @@ def train():
     pqc_model_cobyla.save_weights("../models/pqc_cobyla.npy")
 
     # Evaluate the model
-    predictions_L = pqc_model_lbfgsb.predict(X)
-    predictions_C = pqc_model_cobyla.predict(X)
-
-    # Compute the training loss with processed data
-    train_mse_L = np.mean((predictions_L[:split_idx] - y_train) ** 2)
-    train_mse_C = np.mean((predictions_C[:split_idx] - y_train) ** 2)
-
-    # Compute testing loss
-    test_mse_L = np.mean((predictions_L[split_idx:] - y_test) ** 2)
-    test_mse_C = np.mean((predictions_C[split_idx:] - y_test) ** 2)
-
     print("\nPQC with L-BFGS-B Optimizer")
-    print(f"Training Loss (MSE): {train_mse_L}")
-    print(f"Test Loss (MSE): {test_mse_L}")
+    print(f"Training Loss (MSE): {pqc_model_lbfgsb.score(X_train, y_train)}")
+    print(f"Testing Loss (MSE): {pqc_model_lbfgsb.score(X_test, y_test)}")
     print("\nPQC with COBYLA Optimizer")
-    print(f"Training Loss (MSE): {train_mse_C}")
-    print(f"Test Loss (MSE): {test_mse_C}")
+    print(f"Training Loss (MSE): {pqc_model_cobyla.score(X_train, y_train)}")
+    print(f"Testing Loss (MSE): {pqc_model_cobyla.score(X_test, y_test)}")
 
 
 if __name__ == "__main__":

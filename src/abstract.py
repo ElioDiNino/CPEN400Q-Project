@@ -2,6 +2,7 @@ from numpy import ndarray
 from abc import ABC, abstractmethod
 import csv
 import numpy as np
+from sklearn.metrics import mean_squared_error
 
 
 class ForecastingMethod(ABC):
@@ -197,6 +198,20 @@ class ForecastingMethod(ABC):
             data = np.cumsum(data)
 
         return data
+
+    def score(self, X: ndarray, y: ndarray) -> float:
+        """
+        Compute the mean squared error of the model.
+
+        Args:
+            X: Input data
+            y: True labels
+
+        Returns:
+            float: The mean squared error of the model on the given data
+        """
+        predictions = self.predict(X)
+        return mean_squared_error(y, predictions)
 
     @abstractmethod
     def train(self, train_X: ndarray, train_y: ndarray) -> None:

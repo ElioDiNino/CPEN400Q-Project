@@ -6,7 +6,6 @@ from sklearn.linear_model import (
     Lasso,
 )
 from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import mean_squared_error
 
 from common import get_paper_data
 from abstract import ForecastingMethod
@@ -104,20 +103,6 @@ class LinearRegression(ForecastingMethod):
 
     def predict(self, X: ndarray) -> ndarray:
         return self.model.predict(X)
-
-    def score(self, X: ndarray, y: ndarray) -> float:
-        """
-        Compute the mean squared error of the model.
-
-        Args:
-            X: Input data
-            y: True labels
-
-        Returns:
-            float: The mean squared error of the model on the given data
-        """
-        predictions = self.predict(X)
-        return mean_squared_error(y, predictions)
 
 
 def train():

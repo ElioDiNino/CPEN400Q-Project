@@ -1,5 +1,4 @@
 import keras
-import numpy as np
 from numpy import ndarray
 
 from common import get_paper_data
@@ -69,7 +68,7 @@ def train():
     """
     print("\nTraining Neural Network...")
 
-    X, X_train, _, y_train, y_test, split_idx = get_paper_data()
+    _, X_train, X_test, y_train, y_test, _ = get_paper_data()
 
     # Train the model
     nn = NeuralNetwork()
@@ -77,13 +76,8 @@ def train():
     nn.save_weights("../models/neural_network")
 
     # Evaluate the model
-    predictions = nn.predict(X)
-
-    train_mse = np.mean((predictions[:split_idx] - y_train) ** 2)
-    test_mse = np.mean((predictions[split_idx:] - y_test) ** 2)
-
-    print(f"Training Loss (MSE): {train_mse}")
-    print(f"Testing Loss (MSE): {test_mse}")
+    print(f"Training Loss (MSE): {nn.score(X_train, y_train)}")
+    print(f"Testing Loss (MSE): {nn.score(X_test, y_test)}")
 
 
 if __name__ == "__main__":
