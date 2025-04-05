@@ -71,7 +71,7 @@ class ForecastingMethod(ABC):
     ) -> tuple[str, float, float, float]:
         """
         Optionally applies differencing and scaling to the data, writing
-        the result into a new CSV file with "_processed" appended.
+        the result into a new CSV file with "-processed" appended.
 
         Args:
             filepath: Path to the CSV file containing the data
@@ -126,11 +126,11 @@ class ForecastingMethod(ABC):
             min_value_prescale = min_value
             max_value_prescale = max_value
 
-        # create and write to a CSV with original name + "_processed"
+        # create and write to a CSV with original name + "-processed"
         new_filepath = filepath.split("/")
         new_filepath[-1] = (
-            new_filepath[-1].split(".")[0] + "_processed.csv"
-        )  # append "_processed" to the filename
+            new_filepath[-1].split(".")[0] + "-processed.csv"
+        )  # append "-processed" to the filename
         new_filepath = "/".join(new_filepath)  # join the list back together
         with open(new_filepath, mode="w", newline="") as file:
             writer = csv.writer(file)
