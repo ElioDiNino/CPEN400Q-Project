@@ -8,28 +8,32 @@ The goal of this project is to implement and compare both classical and hybrid q
 
 The repository is structured as follows:
 ```
-Root
 ├─ .flake8                   # Flake8 (Python formatting check) configuration
-├─ .pre-commit-config.yaml   # Pre-commit configuration
+├─ .pre-commit-config.yaml   # Pre-commit configuration (automatic formatting and other checks)
 ├─ README.md
 ├─ requirements.txt          # Required packages
 ├─ .github
 │  └─ workflows
 │     └─ pre-commit.yml      # GitHub Actions workflow to enforce pre-commit hooks
+├─ documents
+│  ├─ report.pdf             # Final report
+│  └─ presentation.pdf       # In-class presentation
 ├─ data                      # Datasets
 │  ├─ paper-data.csv
 │  └─ paper-data_processed.csv
-├─ weights                   # Trained weights for the models
+├─ models                    # Trained models/weights
 │  ├─ pqc_cobyla.npy
 │  └─ pqc_lbfgsb.npy
 └─ src
-   ├─ abstract.py            # Abstract base class for all our models
+   ├─ abstract.py            # Abstract base class for all the models
+   ├─ constants.py           # Constants used for the models
    ├─ demo.ipynb             # Jupyter notebook to demonstrate the models
    ├─ helpers.py             # Helper functions for graphing
    ├─ linear_regression.py   # Linear regression model
    ├─ neural_network.py      # Neural network model
+   ├─ plots.py               # Final plot generation for our report
    ├─ pqc.py                 # Parameterized Quantum Circuit (PQC) model
-   └─ plots.py               # Final plot generation for the paper
+   └─ train.py               # Training script for all models
 ```
 
 ### Framework Choices
@@ -60,11 +64,23 @@ pip install -r requirements.txt
 
 For an overview of the models and their usage, please refer to the Jupyter notebook [`demo.ipynb`](src/demo.ipynb). The notebook contains examples of how to use the models and generate plots.
 
-To generate the final plots for the paper, run the following command:
+#### Generating Plots
+
+To generate the final plots for our report, run the following command inside the [`src`](src/) directory:
 
 ```bash
-python src/plots.py
+python plots.py
 ```
+This will generate the plots using the models from the [`models`](models/) directory and save them in the [`plots`](plots/) directory.
+
+#### Training the Models
+
+If you want to train the models, from inside the the [`src`](src/) directory you can either run each model's respective Python file (e.g. `python neural_network.py`) or run:
+
+```bash
+python train.py
+```
+This will train all the models and save them in the [`models`](models/) directory. Note that this will take a very long time to run.
 
 ## Contributions
 
@@ -83,6 +99,7 @@ python src/plots.py
   - [Linear regression model](src/linear_regression.py)
   - [Helper functions for graphs](src/helpers.py)
   - [Demo notebook](src/demo.ipynb)
+  - [Training script](src/train.py) and per-model functions
 - **Richard Sun**
   - [Abstract base class for models](src/abstract.py)
   - [Dataset loading, preprocessing, and postprocessing](src/abstract.py)
