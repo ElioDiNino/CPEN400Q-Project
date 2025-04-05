@@ -1,9 +1,11 @@
+import copy
 import pennylane as qml
 import numpy as np
-import scipy as sp
-from abstract import ForecastingMethod
+from scipy.optimize import minimize
 from numpy import ndarray
-import copy
+
+from common import get_paper_data
+from abstract import ForecastingMethod
 
 
 class PQC(ForecastingMethod):
@@ -12,7 +14,15 @@ class PQC(ForecastingMethod):
     forecasting.
     """
 
-    def __init__(self, optimizer, n_wires, n_layers):
+    def __init__(self, optimizer: str | None, n_wires: int, n_layers: int):
+        """
+        Initialize the Parameterized Quantum Circuit (PQC) model.
+
+        Args:
+            optimizer: The optimization algorithm to use for training.
+            n_wires: Number of qubits (wires) in the quantum circuit.
+            n_layers: Number of layers in the quantum circuit.
+        """
         super().__init__()
         self.n_wires = n_wires
         self.n_layers = n_layers
@@ -20,11 +30,11 @@ class PQC(ForecastingMethod):
         self.theta_ary = np.zeros((self.n_layers, self.n_wires * 2))
         self.optimizer = optimizer
 
-    def pqc_qnode(self, phi_ary: np.ndarray, theta_ary: np.ndarray):
-        qnode = qml.QNode(self.pqc_circuit, self.dev)
+    def __pqc_qnode(self, phi_ary: ndarray, theta_ary: ndarray):
+        qnode = qml.QNode(self.__pqc_circuit, self.dev)
         return qnode(phi_ary, theta_ary)
 
-    def pqc_circuit(self, phi_ary: np.ndarray, theta_ary: np.ndarray):
+    def __pqc_circuit(self, phi_ary: ndarray, theta_ary: ndarray):
         """
         A quantum circuit that encodes the data before applying 2 layers of
         RX and RY rotations followed by a series of CNOT gates.
@@ -38,11 +48,11 @@ class PQC(ForecastingMethod):
             np.ndarray: The final state vector of the quantum circuit.
         """
 
-        def encode_circuit(phi_ary: np.ndarray):
+        def encode_circuit(phi_ary: ndarray):
             for wire in range(self.n_wires):
                 qml.RY(phi_ary[wire], wires=wire)
 
-        def apply_layer(layer_theta_ary: np.ndarray):
+        def apply_layer(layer_theta_ary: ndarray):
             """
             A function that applies a layer of RX and RY rotations
 
@@ -81,7 +91,7 @@ class PQC(ForecastingMethod):
         """
         Draw the quantum circuit.
         """
-        return qml.draw_mpl(self.pqc_circuit, decimals=3)(
+        return qml.draw_mpl(self.__pqc_circuit, decimals=3)(
             np.zeros(self.n_wires), self.theta_ary
         )
 
@@ -104,7 +114,7 @@ class PQC(ForecastingMethod):
                 example = train_X[i]
                 label = train_y[i]
                 phi_ary = example
-                prediction = self.pqc_qnode(phi_ary, theta_ary)
+                prediction = self.__pqc_qnode(phi_ary, theta_ary)
                 error = prediction - label
                 mean_squared_error += error**2
             return mean_squared_error
@@ -112,7 +122,7 @@ class PQC(ForecastingMethod):
         # Initial guess for theta_ary(flattened to single array)
         initial_theta_ary = np.random.rand(self.n_layers * self.n_wires * 2)
         # Optimize the cost function
-        result = sp.optimize.minimize(
+        result = minimize(
             cost_function, initial_theta_ary, method=self.optimizer
         )
         # Update the theta_ary with the optimized values
@@ -138,6 +148,54 @@ class PQC(ForecastingMethod):
         predictions = []
         for example in test_X:
             phi_ary = example
-            prediction = self.pqc_qnode(phi_ary, self.theta_ary)
+            prediction = self.__pqc_qnode(phi_ary, self.theta_ary)
             predictions.append(prediction)
         return np.array(predictions)
+
+
+def train():
+    """
+    Train the PQC model on the paper data
+    """
+    N_WIRES = 12
+    N_LAYERS = 2
+
+    print("\nTraining PQC...")
+
+    X, X_train, _, y_train, y_test, split_idx = get_paper_data()
+
+    # Train the models
+    pqc_model_lbfgsb = PQC(
+        n_wires=N_WIRES, n_layers=N_LAYERS, optimizer="L-BFGS-B"
+    )
+    pqc_model_cobyla = PQC(
+        n_wires=N_WIRES, n_layers=N_LAYERS, optimizer="COBYLA"
+    )
+    pqc_model_lbfgsb.train(X_train, y_train)
+    pqc_model_cobyla.train(X_train, y_train)
+
+    pqc_model_lbfgsb.save_weights("../models/pqc_lbfgsb.npy")
+    pqc_model_cobyla.save_weights("../models/pqc_cobyla.npy")
+
+    # Evaluate the model
+    predictions_L = pqc_model_lbfgsb.predict(X)
+    predictions_C = pqc_model_cobyla.predict(X)
+
+    # Compute the training loss with processed data
+    train_mse_L = np.mean((predictions_L[:split_idx] - y_train) ** 2)
+    train_mse_C = np.mean((predictions_C[:split_idx] - y_train) ** 2)
+
+    # Compute testing loss
+    test_mse_L = np.mean((predictions_L[split_idx:] - y_test) ** 2)
+    test_mse_C = np.mean((predictions_C[split_idx:] - y_test) ** 2)
+
+    print("\nPQC with L-BFGS-B Optimizer")
+    print(f"Training Loss (MSE): {train_mse_L}")
+    print(f"Test Loss (MSE): {test_mse_L}")
+    print("\nPQC with COBYLA Optimizer")
+    print(f"Training Loss (MSE): {train_mse_C}")
+    print(f"Test Loss (MSE): {test_mse_C}")
+
+
+if __name__ == "__main__":
+    train()
