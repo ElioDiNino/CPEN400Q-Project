@@ -201,7 +201,7 @@ class ForecastingMethod(ABC):
         return data
 
     @staticmethod
-    def load_model(self, filepath: str) -> "ForecastingMethod" | None:
+    def load_model(filepath: str) -> "ForecastingMethod" | None:
         """
         Load and return a saved model from a file.
 
