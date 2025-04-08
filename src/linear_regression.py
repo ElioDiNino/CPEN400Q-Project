@@ -1,5 +1,4 @@
 from numpy import ndarray
-from pickle import dump, load
 from sklearn.linear_model import (
     LinearRegression as SklearnLinearRegression,
     Ridge,
@@ -47,6 +46,10 @@ class LinearRegression(ForecastingMethod):
         self.cv_folds = cv_folds
         self.alphas = alphas
         self.model = None
+        self.__mse_iterations: list[float] = []
+
+    def mse_iterations(self) -> list[float]:
+        return self.__mse_iterations
 
     def train(self, train_X: ndarray, train_y: ndarray) -> None:
         """
@@ -85,21 +88,9 @@ class LinearRegression(ForecastingMethod):
             grid_search.fit(train_X, train_y)
             self.model = grid_search.best_estimator_
 
-    def save_weights(self, filepath: str) -> bool:
-        try:
-            with open(filepath + ".pkl", "wb") as f:
-                dump(self.model, f, protocol=5)
-        except Exception:
-            return False
-        return True
-
-    def load_weights(self, filepath: str) -> bool:
-        try:
-            with open(filepath, "rb") as f:
-                self.model = load(f)
-        except FileNotFoundError:
-            return False
-        return True
+        # All the variations only use a single iteration of training
+        # See the README for limitation details
+        self.__mse_iterations = [self.score(train_X, train_y)]
 
     def predict(self, X: ndarray) -> ndarray:
         return self.model.predict(X)
@@ -116,7 +107,7 @@ def train():
     # Train the model
     lr = LinearRegression(fit_intercept=True, regularization=None)
     lr.train(X_train, y_train)
-    lr.save_weights("../models/linear_regression")
+    lr.save_model("../models/linear_regression")
 
     # Evaluate the model
     print(f"Training Loss (MSE): {lr.score(X_train, y_train)}")
