@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 import csv
 import numpy as np
 from sklearn.metrics import mean_squared_error
+from pickle import dump, load
 
 
 class ForecastingMethod(ABC):
@@ -199,6 +200,42 @@ class ForecastingMethod(ABC):
 
         return data
 
+    @staticmethod
+    def load_model(self, filepath: str) -> "ForecastingMethod" | None:
+        """
+        Load and return a saved model from a file.
+
+        Args:
+            filepath: Path to the saved model file
+
+        Returns:
+            ForecastingMethod | None: The loaded model or None if the file
+            does not exist
+        """
+        try:
+            with open(filepath, "rb") as f:
+                return load(f)
+        except FileNotFoundError:
+            return None
+
+    def save_model(self, filepath: str) -> bool:
+        """
+        Save the computed model data to a file.
+
+        Args:
+            filepath: Path to the file where the model will be saved
+
+        Returns:
+            bool: True if training results were saved successfully,
+            False otherwise
+        """
+        try:
+            with open(filepath + ".pkl", "wb") as f:
+                dump(self, f, protocol=5)
+        except Exception:
+            return False
+        return True
+
     def score(self, X: ndarray, y: ndarray) -> float:
         """
         Compute the mean squared error of the model.
@@ -235,36 +272,6 @@ class ForecastingMethod(ABC):
         Args:
             train_X: Training data
             train_y: Training labels
-        """
-        pass
-
-    @abstractmethod
-    def save_results(self, filepath: str) -> bool:
-        """
-        Save the computed weights and mse_iterations data from training.
-        Requires that the model has been trained or had training results
-        loaded before saving successfully.
-
-        Args:
-            filepath: Path to the training results file to save
-
-        Returns:
-            bool: True if training results were saved successfully,
-            False otherwise
-        """
-        pass
-
-    @abstractmethod
-    def load_results(self, filepath: str) -> bool:
-        """
-        Load saved weights and mse_iterations data from a file.
-
-        Args:
-            filepath: Path to the training results file to load
-
-        Returns:
-            bool: True if training results were loaded successfully,
-            False otherwise
         """
         pass
 
