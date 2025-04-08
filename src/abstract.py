@@ -15,6 +15,12 @@ class ForecastingMethod(ABC):
     these methods is be provided by subclasses.
     """
 
+    def __init__(self):
+        """
+        Initialize the ForecastingMethod class.
+        """
+        self._mse_iterations = []
+
     @staticmethod
     def load_data(
         filepath: str, windows_size: int = 12
@@ -225,29 +231,32 @@ class ForecastingMethod(ABC):
         pass
 
     @abstractmethod
-    def save_weights(self, filepath: str) -> bool:
+    def save_results(self, filepath: str) -> bool:
         """
-        Save the computed weights from training. Requires that the model has
-        been trained or weights have been loaded before saving successfully.
+        Save the computed weights and _mse_iterations data from training.
+        Requires that the model has been trained or had training results
+        loaded before saving successfully.
 
         Args:
-            filepath: Path to the weights file to save
+            filepath: Path to the training results file to save
 
         Returns:
-            bool: True if weights are saved successfully, False otherwise
+            bool: True if training results were saved successfully,
+            False otherwise
         """
         pass
 
     @abstractmethod
-    def load_weights(self, filepath: str) -> bool:
+    def load_results(self, filepath: str) -> bool:
         """
-        Load saved weights from a file.
+        Load saved weights and _mse_iterations data from a file.
 
         Args:
-            filepath: Path to the weights file to load
+            filepath: Path to the training results file to load
 
         Returns:
-            bool: True if weights are loaded successfully, False otherwise
+            bool: True if training results were loaded successfully,
+            False otherwise
         """
         pass
 
