@@ -209,8 +209,8 @@ class ForecastingMethod(ABC):
             filepath: Path to the saved model file
 
         Returns:
-            ForecastingMethod | None: The loaded model or None if the file
-            does not exist
+            ForecastingMethod | None: The loaded model, or
+            None if the file does not exist
         """
         try:
             with open(filepath, "rb") as f:
@@ -220,13 +220,13 @@ class ForecastingMethod(ABC):
 
     def save_model(self, filepath: str) -> bool:
         """
-        Save the computed model data to a file.
+        Save the model data to a file.
 
         Args:
             filepath: Path to the file where the model will be saved
 
         Returns:
-            bool: True if training results were saved successfully,
+            bool: True if model was saved successfully,
             False otherwise
         """
         try:
