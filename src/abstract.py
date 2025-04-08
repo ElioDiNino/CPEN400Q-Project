@@ -15,12 +15,6 @@ class ForecastingMethod(ABC):
     these methods is be provided by subclasses.
     """
 
-    def __init__(self):
-        """
-        Initialize the ForecastingMethod class.
-        """
-        self._mse_iterations = []
-
     @staticmethod
     def load_data(
         filepath: str, windows_size: int = 12
@@ -218,6 +212,19 @@ class ForecastingMethod(ABC):
         """
         predictions = self.predict(X)
         return mean_squared_error(y, predictions)
+
+    @property
+    @abstractmethod
+    def mse_iterations(self) -> list[float]:
+        """
+        Get the mean squared error iterations. Returns empty list if
+        the model has not been trained yet or if training results
+        have not been loaded.
+
+        Returns:
+            list[float]: The mean squared error iterations
+        """
+        pass
 
     @abstractmethod
     def train(self, train_X: ndarray, train_y: ndarray) -> None:
