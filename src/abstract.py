@@ -217,12 +217,13 @@ class ForecastingMethod(ABC):
     @abstractmethod
     def mse_iterations(self) -> list[float]:
         """
-        Get the mean squared error iterations. Returns empty list if
-        the model has not been trained yet or if training results
-        have not been loaded.
+        Get the mean squared error over the training iterations.
+        Returns an empty list if the model has not been trained
+        yet or if the model has not been loaded from a file.
 
         Returns:
-            list[float]: The mean squared error iterations
+            list[float]: The mean squared error over training
+                iterations
         """
         pass
 
