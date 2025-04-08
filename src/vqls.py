@@ -1,7 +1,7 @@
 import numpy as np
 from numpy import ndarray
 import pennylane as qml
-import scipy
+import scipy.optimize
 
 from common import get_paper_data
 from abstract import ForecastingMethod
@@ -18,14 +18,17 @@ class VQLS(ForecastingMethod):
         Initialize the Variational Quantum Linear Solver (VQLS) model.
 
         Args:
-            n_wires: Number of wires/qubits to use in the model.
+            n_wires: Number of wires/qubits to use in the model. Must be a
+            positive power of 2.
         """
         super().__init__()
+        if n_wires % 2 != 0 or n_wires < 1:
+            raise ValueError("n_wires must be a positive power of 2")
         self.n_wires = n_wires
         self.weights = None
 
-    def unitary(self, b, i, psi, wires):
-
+    def __unitary(self, b, i, psi, wires):
+        # TODO: docstring
         n = len(wires)
 
         # encode psi
@@ -34,7 +37,6 @@ class VQLS(ForecastingMethod):
         # for each qubit apply a pauli
         ii = i
         for x in range(n):
-
             if ii % 4 == 0:
                 qml.Identity(wires[x])
             if ii % 4 == 1:
@@ -49,14 +51,13 @@ class VQLS(ForecastingMethod):
         qml.adjoint(qml.AmplitudeEmbedding)(b, wires=wires)
         return
 
-    def unitary_normalization(self, i1, i2, psi, wires):
+    def __unitary_normalization(self, i1, i2, psi, wires):
+        # TODO: docstring
         qml.AmplitudeEmbedding(psi, wires=wires)
-        # qml.MottonenStatePreparation(psi,wires=wires)
-        # qml.MottonenStatePreparation(features=psi,wires=wires,normalize=True)
+
         n = len(wires)
         ii = i1
         for x in range(n):
-
             if ii % 4 == 0:
                 qml.Identity(wires[x])
             if ii % 4 == 1:
@@ -69,7 +70,6 @@ class VQLS(ForecastingMethod):
 
         ii = i2
         for x in range(n):
-
             if ii % 4 == 0:
                 qml.Identity(wires[x])
             if ii % 4 == 1:
@@ -80,13 +80,10 @@ class VQLS(ForecastingMethod):
                 qml.PauliZ(wires[x])
             ii = np.floor(ii / 4)
 
-        # qml.adjoint(qml.MottonenStatePreparation)(psi,wires=wires)
         qml.adjoint(qml.AmplitudeEmbedding)(psi, wires=wires)
 
-        return
-
-    def compute_product(self, b, U, psi):
-
+    def __compute_product(self, b, U, psi):
+        # TODO: docstring
         # number of qubits
         n = round(np.log2(len(U)))
 
@@ -98,21 +95,21 @@ class VQLS(ForecastingMethod):
 
             length = int(np.ceil(np.log2(len(b))))
 
-            qml.ctrl(self.unitary, control=0)(
+            qml.ctrl(self.__unitary, control=0)(
                 b, i, psi, list(range(1, length + 1))
             )
             qml.Hadamard(wires=0)
 
             return qml.expval(qml.Z(0))
 
-        # hadamard test to compute the solution norm
+        # Hadamard test to compute the solution norm
         def HtestRealNorm(i1, i2, psi):
             qml.Hadamard(wires=0)
             psi = psi / np.linalg.norm(psi)
 
             length = int(np.ceil(np.log2(len(psi))))
 
-            qml.ctrl(self.unitary_normalization, control=0)(
+            qml.ctrl(self.__unitary_normalization, control=0)(
                 i1, i2, psi, list(range(1, length + 1))
             )
             qml.Hadamard(wires=0)
@@ -137,7 +134,6 @@ class VQLS(ForecastingMethod):
             Ui = np.array([1])
             ii = i
             for x in range(n):
-
                 if ii % 4 == 0:
                     Ui = np.kron(Ui, np.array([[1, 0], [0, 1]]))
                 if ii % 4 == 1:
@@ -159,11 +155,10 @@ class VQLS(ForecastingMethod):
 
             for i2 in range(4**n):
 
-                # compute coefficent
+                # compute coefficient
                 Ui = [1]
                 ii = i2
                 for x in range(n):
-
                     if ii % 4 == 0:
                         Ui = np.kron(Ui, np.array([[1, 0], [0, 1]]))
                     if ii % 4 == 1:
@@ -184,7 +179,8 @@ class VQLS(ForecastingMethod):
 
         return exp / np.sqrt(normalize)
 
-    def angles_to_vector(self, psi_angles):  # hypersphere coordinates
+    def __angles_to_vector(self, psi_angles):  # hypersphere coordinates
+        # TODO: docstring
         n = len(psi_angles)
 
         psi = []
@@ -201,9 +197,10 @@ class VQLS(ForecastingMethod):
         psi.append(val)
         return psi
 
-    def compute_product_angles(self, b, U, psi_angles):
-        psi = self.angles_to_vector(psi_angles)
-        return self.compute_product(b, U, psi)
+    def __compute_product_angles(self, b, U, psi_angles):
+        # TODO: docstring
+        psi = self.__angles_to_vector(psi_angles)
+        return self.__compute_product(b, U, psi)
 
     def mse_iterations(self) -> list[float]:
         pass
@@ -219,18 +216,18 @@ class VQLS(ForecastingMethod):
         cost_history = []
 
         def cost(x):
-            return 1 - np.real(self.compute_product_angles(b, M, x))
+            return 1 - np.real(self.__compute_product_angles(b, M, x))
 
         def callback(xk):
             c = cost(xk)
             cost_history.append(c)
-            print("step #", len(cost_history), self.angles_to_vector(xk), c)
+            print("step #", len(cost_history), self.__angles_to_vector(xk), c)
 
         result = scipy.optimize.minimize(cost, x0, callback=callback, tol=1e-4)
 
         print(result)
 
-        wv = np.array(self.angles_to_vector(result.x))
+        wv = np.array(self.__angles_to_vector(result.x))
 
         # TODO: save w to class variable for predicting (self.weights)
         # TODO: don't need all the print statements afterwards
