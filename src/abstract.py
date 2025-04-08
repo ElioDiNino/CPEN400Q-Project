@@ -240,7 +240,7 @@ class ForecastingMethod(ABC):
     @abstractmethod
     def save_results(self, filepath: str) -> bool:
         """
-        Save the computed weights and _mse_iterations data from training.
+        Save the computed weights and mse_iterations data from training.
         Requires that the model has been trained or had training results
         loaded before saving successfully.
 
@@ -256,7 +256,7 @@ class ForecastingMethod(ABC):
     @abstractmethod
     def load_results(self, filepath: str) -> bool:
         """
-        Load saved weights and _mse_iterations data from a file.
+        Load saved weights and mse_iterations data from a file.
 
         Args:
             filepath: Path to the training results file to load
