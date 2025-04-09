@@ -18,74 +18,64 @@ class VQLS(ForecastingMethod):
         Initialize the Variational Quantum Linear Solver (VQLS) model.
 
         Args:
-            n_wires: Number of wires/qubits to use in the model. Must be a
-            positive power of 2.
+            n_wires: Number of wires/qubits to use in the model.
         """
         super().__init__()
-        if n_wires % 2 != 0 or n_wires < 1:
-            raise ValueError("n_wires must be a positive power of 2")
+        if n_wires <= 0:
+            raise ValueError("n_wires must be positive")
         self.n_wires = n_wires
         self.weights = None
 
+    def __apply_paulis(self, start, wires):
+        """
+        Apply the Pauli gates to the provided wires based on the
+        starting value.
+
+        Args:
+            start: The starting value to apply gates based on.
+            wires: The wires to which the gates will be applied.
+        """
+        pauli_gates = {
+            0: qml.Identity,
+            1: qml.PauliX,
+            2: qml.PauliY,
+            3: qml.PauliZ,
+        }
+
+        n = len(wires)
+        i = start
+        for x in range(n):
+            gate = pauli_gates[i % 4]
+            gate(wires[x])
+            i = i // 4
+
     def __unitary(self, b, i, psi, wires):
         # TODO: docstring
-        n = len(wires)
 
-        # encode psi
+        # Encode psi
         qml.AmplitudeEmbedding(psi, wires=wires)
 
-        # for each qubit apply a pauli
-        ii = i
-        for x in range(n):
-            if ii % 4 == 0:
-                qml.Identity(wires[x])
-            if ii % 4 == 1:
-                qml.PauliX(wires[x])
-            if ii % 4 == 2:
-                qml.PauliY(wires[x])
-            if ii % 4 == 3:
-                qml.PauliZ(wires[x])
-            ii = np.floor(ii / 4)
+        self.__apply_paulis(i, wires)
 
-        # encode b
+        # Encode b
         qml.adjoint(qml.AmplitudeEmbedding)(b, wires=wires)
         return
 
     def __unitary_normalization(self, i1, i2, psi, wires):
         # TODO: docstring
+
+        # Encode psi
         qml.AmplitudeEmbedding(psi, wires=wires)
 
-        n = len(wires)
-        ii = i1
-        for x in range(n):
-            if ii % 4 == 0:
-                qml.Identity(wires[x])
-            if ii % 4 == 1:
-                qml.PauliX(wires[x])
-            if ii % 4 == 2:
-                qml.PauliY(wires[x])
-            if ii % 4 == 3:
-                qml.PauliZ(wires[x])
-            ii = np.floor(ii / 4)
+        self.__apply_paulis(i1, wires)
+        self.__apply_paulis(i2, wires)
 
-        ii = i2
-        for x in range(n):
-            if ii % 4 == 0:
-                qml.Identity(wires[x])
-            if ii % 4 == 1:
-                qml.PauliX(wires[x])
-            if ii % 4 == 2:
-                qml.PauliY(wires[x])
-            if ii % 4 == 3:
-                qml.PauliZ(wires[x])
-            ii = np.floor(ii / 4)
-
+        # Encode b
         qml.adjoint(qml.AmplitudeEmbedding)(psi, wires=wires)
 
     def __compute_product(self, b, U, psi):
         # TODO: docstring
-        # number of qubits
-        n = round(np.log2(len(U)))
+        n = self.n_wires
 
         # Hadamard Test
         def HtestReal(b, i, psi):
@@ -116,21 +106,20 @@ class VQLS(ForecastingMethod):
 
             return qml.expval(qml.Z(0))
 
-        # qnodes
-        dev = qml.device("default.qubit", wires=n + 1)
+        # QNodes
+        dev = qml.device("default.qubit", wires=self.n_wires + 1)
         HTEST = qml.QNode(HtestReal, dev)
         HTESTNORM = qml.QNode(HtestRealNorm, dev)
 
-        # expectation value
+        # Expectation value
         exp = 0
 
-        # normalization of the expectation value
+        # Normalization of the expectation value
         normalize = 0
 
-        # compute expectation value
+        # Compute expectation value
         for i in range(4**n):
-
-            # compute trace
+            # Compute trace
             Ui = np.array([1])
             ii = i
             for x in range(n):
@@ -147,15 +136,14 @@ class VQLS(ForecastingMethod):
             trace = np.trace(np.matmul(Ui, U))
             alpha = 2.0**-n * trace
 
-            # do Htest
+            # Do Hadamard test
             real = 0
             if abs(alpha) ** 2 > 0:
                 real = HTEST(b, i, psi)
             exp = exp + alpha * real
 
             for i2 in range(4**n):
-
-                # compute coefficient
+                # Compute coefficient
                 Ui = [1]
                 ii = i2
                 for x in range(n):
@@ -172,7 +160,7 @@ class VQLS(ForecastingMethod):
                 trace = np.trace(np.matmul(Ui, U))
                 alpha2 = 2.0**-n * trace
 
-                # do Htest
+                # Do Hadamard test
                 if abs(alpha) ** 2 > 0:
                     real = HTESTNORM(i, i2, psi)
                 normalize = normalize + alpha * np.conj(alpha2) * real
@@ -202,17 +190,16 @@ class VQLS(ForecastingMethod):
         psi = self.__angles_to_vector(psi_angles)
         return self.__compute_product(b, U, psi)
 
+    @property
     def mse_iterations(self) -> list[float]:
         pass
 
     def train(self, train_X: ndarray, train_y: ndarray) -> None:
-        # b=[1,-10]
-        # M=[[22,-10],[-10,97]]
-        # TODO: check over this
         M = train_X.T @ train_X
         b = train_X.T @ train_y
 
-        x0 = [1]  # TODO: maybe randomize?
+        x0 = np.zeros(self.n_wires)
+
         cost_history = []
 
         def cost(x):
@@ -221,40 +208,38 @@ class VQLS(ForecastingMethod):
         def callback(xk):
             c = cost(xk)
             cost_history.append(c)
-            print("step #", len(cost_history), self.__angles_to_vector(xk), c)
+            print(f"Iteration {len(cost_history)} - cost: {c}")
 
-        result = scipy.optimize.minimize(cost, x0, callback=callback, tol=1e-4)
-
-        print(result)
+        result = scipy.optimize.minimize(cost, x0, callback=callback, tol=1e-8)
 
         wv = np.array(self.__angles_to_vector(result.x))
 
-        # TODO: save w to class variable for predicting (self.weights)
-        # TODO: don't need all the print statements afterwards
-
-        print("ansatz vector", wv)
-        Aw = np.matmul(M, wv)
+        print("Ansatz vector:", wv)
+        Aw = M @ wv
         w = np.linalg.norm(b) * wv / np.linalg.norm(Aw)
 
-        print(" computed weights", w)
-        print("exact b", np.matmul(np.matmul(M, np.linalg.inv(M)), b))
-        print("computed b", np.matmul(M, w))
+        print("Computed weights:", w)
+        print("Exact b:", M @ np.linalg.inv(M) @ b)
+        print("Computed b:", M @ w)
+
+        self.weights = w
 
     def predict(self, X: ndarray) -> ndarray:
-        # TODO: predict using the weights. Should just be X @ self.weights
-        pass
+        return X @ self.weights
 
 
 def train():
     """
-    Train the linear regression model on the paper data
+    Train the VQLS model on the paper data
     """
     print("\nTraining VQLS...")
 
-    _, _, X_train, X_test, y_train, y_test, _, _, _, _ = get_paper_data()
+    _, _, X_train, X_test, y_train, y_test, _, _, _, _ = get_paper_data(
+        window_size=2**2
+    )
 
     # Train the model
-    vqls = VQLS()
+    vqls = VQLS(n_wires=2)
     vqls.train(X_train, y_train)
     vqls.save_model("../models/vqls")
 
