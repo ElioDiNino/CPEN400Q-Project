@@ -178,7 +178,7 @@ class PQC(ForecastingMethod):
                 prediction = self.__pqc_qnode(phi_ary, theta_ary)
                 error = prediction - label
                 mean_squared_error += error**2
-            return mean_squared_error
+            return mean_squared_error / len(train_X)
 
         def save_mse(mse):
             self._mse_iterations.append(cost_function(mse))
