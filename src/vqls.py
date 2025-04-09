@@ -198,7 +198,7 @@ class VQLS(ForecastingMethod):
         M = train_X.T @ train_X
         b = train_X.T @ train_y
 
-        x0 = np.zeros(self.n_wires)
+        x0 = np.zeros(2**self.n_wires - 1)
 
         cost_history = []
 
