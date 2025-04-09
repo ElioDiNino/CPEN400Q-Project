@@ -6,6 +6,7 @@ from numpy import ndarray
 
 from common import get_paper_data
 from abstract import ForecastingMethod
+from pickle import dump, load
 
 
 class PQC(ForecastingMethod):
@@ -14,7 +15,14 @@ class PQC(ForecastingMethod):
     forecasting.
     """
 
-    def __init__(self, optimizer: str | None, n_wires: int, n_layers: int):
+    def __init__(
+        self,
+        optimizer: str | None,
+        n_wires: int,
+        n_layers: int,
+        theta_ary: ndarray | None = None,
+        mse_iterations: list[float] | None = None,
+    ):
         """
         Initialize the Parameterized Quantum Circuit (PQC) model.
 
@@ -27,8 +35,53 @@ class PQC(ForecastingMethod):
         self.n_wires = n_wires
         self.n_layers = n_layers
         self.dev = qml.device("default.qubit", wires=n_wires)
-        self.theta_ary = np.zeros((self.n_layers, self.n_wires * 2))
         self.optimizer = optimizer
+        self.theta_ary = (
+            theta_ary
+            if theta_ary is not None
+            else np.zeros((self.n_layers, self.n_wires * 2))
+        )
+        self._mse_iterations = (
+            mse_iterations if mse_iterations is not None else []
+        )
+
+    def save_model(self, filepath):
+        try:
+            data = {
+                "optimizer": self.optimizer,
+                "n_wires": self.n_wires,
+                "n_layers": self.n_layers,
+                "theta_ary": self.theta_ary,
+                "mse_iterations": self._mse_iterations,
+            }
+            with open(filepath + ".pkl", "wb") as f:
+                dump(data, f, protocol=5)
+        except Exception as e:
+            # print the error
+            print(f"Occurred following error: {e}")
+            return False
+        return True
+
+    def load_model(filepath):
+        try:
+            with open(filepath + ".pkl", "rb") as f:
+                data = load(f)
+                optimizer = data["optimizer"]
+                n_wires = data["n_wires"]
+                n_layers = data["n_layers"]
+                theta_ary = data["theta_ary"]
+                mse_iterations = data["mse_iterations"]
+                return PQC(
+                    optimizer=optimizer,
+                    n_wires=n_wires,
+                    n_layers=n_layers,
+                    theta_ary=theta_ary,
+                    mse_iterations=mse_iterations,
+                )
+        except Exception as e:
+            # print the error
+            print(f"Error loading model from {filepath}.pkl: {e}")
+            return None
 
     def __pqc_qnode(self, phi_ary: ndarray, theta_ary: ndarray):
         qnode = qml.QNode(self.__pqc_circuit, self.dev)
@@ -119,30 +172,20 @@ class PQC(ForecastingMethod):
                 mean_squared_error += error**2
             return mean_squared_error
 
+        def save_mse(mse):
+            self._mse_iterations.append(mse)
+
         # Initial guess for theta_ary(flattened to single array)
         initial_theta_ary = np.random.rand(self.n_layers * self.n_wires * 2)
         # Optimize the cost function
         result = minimize(
-            cost_function, initial_theta_ary, method=self.optimizer
+            cost_function,
+            initial_theta_ary,
+            method=self.optimizer,
+            callback=save_mse,
         )
         # Update the theta_ary with the optimized values
         self.theta_ary = result.x.reshape(self.n_layers, self.n_wires * 2)
-
-    def save_weights(self, filepath: str) -> bool:
-        try:
-            np.save(filepath, self.theta_ary)
-            return True
-        except Exception as e:
-            print(f"Error saving weights: {e}")
-            return False
-
-    def load_weights(self, filepath: str) -> bool:
-        try:
-            self.theta_ary = np.load(filepath)
-            return True
-        except Exception as e:
-            print(f"Error loading weights: {e}")
-            return False
 
     def predict(self, test_X: ndarray) -> ndarray:
         predictions = []
@@ -151,6 +194,13 @@ class PQC(ForecastingMethod):
             prediction = self.__pqc_qnode(phi_ary, self.theta_ary)
             predictions.append(prediction)
         return np.array(predictions)
+
+    @property
+    def mse_iterations(self) -> list[float]:
+        """
+        Returns the MSE iterations for each training iteration.
+        """
+        return self._mse_iterations
 
 
 def train():
@@ -174,8 +224,8 @@ def train():
     pqc_model_lbfgsb.train(X_train, y_train)
     pqc_model_cobyla.train(X_train, y_train)
 
-    pqc_model_lbfgsb.save_weights("../models/pqc_lbfgsb.npy")
-    pqc_model_cobyla.save_weights("../models/pqc_cobyla.npy")
+    print(pqc_model_lbfgsb.save_model("../models/pqc_lbfgsb"))
+    print(pqc_model_cobyla.save_model("../models/pqc_cobyla"))
 
     # Evaluate the model
     print("\nPQC with L-BFGS-B Optimizer")
