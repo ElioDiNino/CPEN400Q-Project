@@ -22,6 +22,7 @@ class PQC(ForecastingMethod):
         n_layers: int,
         theta_ary: ndarray | None = None,
         mse_iterations: list[float] | None = None,
+        max_iterations: int | None = None,
     ):
         """
         Initialize the Parameterized Quantum Circuit (PQC) model.
@@ -44,6 +45,7 @@ class PQC(ForecastingMethod):
         self._mse_iterations = (
             mse_iterations if mse_iterations is not None else []
         )
+        self.max_iterations = max_iterations
 
     @staticmethod
     def load_model(filepath):
@@ -55,12 +57,14 @@ class PQC(ForecastingMethod):
                 n_layers = data["n_layers"]
                 theta_ary = data["theta_ary"]
                 mse_iterations = data["mse_iterations"]
+                max_iterations = data["max_iterations"]
                 return PQC(
                     optimizer=optimizer,
                     n_wires=n_wires,
                     n_layers=n_layers,
                     theta_ary=theta_ary,
                     mse_iterations=mse_iterations,
+                    max_iterations=max_iterations,
                 )
         except Exception as e:
             # print the error
@@ -75,6 +79,7 @@ class PQC(ForecastingMethod):
                 "n_layers": self.n_layers,
                 "theta_ary": self.theta_ary,
                 "mse_iterations": self._mse_iterations,
+                "max_iterations": self.max_iterations,
             }
             with open(filepath + ".pkl", "wb") as f:
                 dump(data, f, protocol=5)
@@ -157,6 +162,7 @@ class PQC(ForecastingMethod):
         return self._mse_iterations
 
     def train(self, train_X: ndarray, train_y: ndarray) -> None:
+        iteration_count = 0
         # deep copy train_X and train_y
         train_X = copy.deepcopy(train_X)
         train_y = copy.deepcopy(train_y)
@@ -181,16 +187,29 @@ class PQC(ForecastingMethod):
             return mean_squared_error / len(train_X)
 
         def save_mse(mse):
+            nonlocal iteration_count
+            iteration_count += 1
+
+            # COBYLA optimizer calls callback with the initial guess
+            # and no optimizations should ignore
+            if self.optimizer == "COBYLA" and iteration_count == 1:
+                return
             self._mse_iterations.append(cost_function(mse))
 
         # Initial guess for theta_ary(flattened to single array)
         initial_theta_ary = np.random.rand(self.n_layers * self.n_wires * 2)
         # Optimize the cost function
+        if self.max_iterations is not None:
+            options = {"maxiter": self.max_iterations}
+        else:
+            options = None
+
         result = minimize(
             cost_function,
             initial_theta_ary,
             method=self.optimizer,
             callback=save_mse,
+            options=options,
         )
         # Update the theta_ary with the optimized values
         self.theta_ary = result.x.reshape(self.n_layers, self.n_wires * 2)
@@ -217,10 +236,16 @@ def train():
 
     # Train the models
     pqc_model_lbfgsb = PQC(
-        n_wires=N_WIRES, n_layers=N_LAYERS, optimizer="L-BFGS-B"
+        n_wires=N_WIRES,
+        n_layers=N_LAYERS,
+        optimizer="L-BFGS-B",
+        max_iterations=1000,
     )
     pqc_model_cobyla = PQC(
-        n_wires=N_WIRES, n_layers=N_LAYERS, optimizer="COBYLA"
+        n_wires=N_WIRES,
+        n_layers=N_LAYERS,
+        optimizer="COBYLA",
+        max_iterations=1000,
     )
     pqc_model_lbfgsb.train(X_train, y_train)
     pqc_model_cobyla.train(X_train, y_train)
