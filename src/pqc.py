@@ -181,7 +181,7 @@ class PQC(ForecastingMethod):
             return mean_squared_error
 
         def save_mse(mse):
-            self._mse_iterations.append(mse)
+            self._mse_iterations.append(cost_function(mse))
 
         # Initial guess for theta_ary(flattened to single array)
         initial_theta_ary = np.random.rand(self.n_layers * self.n_wires * 2)
