@@ -32,7 +32,7 @@ class VQLS(ForecastingMethod):
         starting value.
 
         Args:
-            start: The starting value to apply gates based on.
+            start: The starting value to apply gates based on. Encoded in base 4.
             wires: The wires to which the gates will be applied.
         """
         pauli_gates = {
@@ -50,7 +50,15 @@ class VQLS(ForecastingMethod):
             i = i // 4
 
     def __unitary(self, b, i, psi, wires):
-        # TODO: docstring
+        """
+        Apply amplitude embedding, paulis and de-amplitude embedding for VQLS. Applies: M_b^t*Pauli*M_psi where M is amplitude embedding.
+
+        Args:
+            b: the training vector.
+            i(int): the pauli matricies to apply, encoded in base 4.
+            psi: the ansatz vector (w).
+            wires: The wires to which the gates will be applied.
+        """
 
         # Encode psi
         qml.AmplitudeEmbedding(psi, wires=wires)
@@ -62,7 +70,15 @@ class VQLS(ForecastingMethod):
         return
 
     def __unitary_normalization(self, i1, i2, psi, wires):
-        # TODO: docstring
+          """
+        Apply the unitary for normalization:  M_psi^t*Pauli_i2*Pauli_i1*M_psi where M is amplitude embedding.
+
+        Args:
+            i1(int): the first pauli matricies to apply, encoded in base 4.
+            i2(int): the second pauli matricies to apply, encoded in base 4.
+            psi: the ansatz vector (w).
+            wires: The wires to which the gates will be applied.
+        """
 
         # Encode psi
         qml.AmplitudeEmbedding(psi, wires=wires)
@@ -70,15 +86,35 @@ class VQLS(ForecastingMethod):
         self.__apply_paulis(i1, wires)
         self.__apply_paulis(i2, wires)
 
-        # Encode b
+        # de-encode psi
         qml.adjoint(qml.AmplitudeEmbedding)(psi, wires=wires)
 
-    def __compute_product(self, b, U, psi):
-        # TODO: docstring
+    def __compute_product(self, b, M, psi):
+        """
+        Computes the normalized expectation <b|M|psi>/|m|psi>|, for use in VQLS training.
+
+        Args:
+            b: training data embedding vector.
+            M: trainging data matrix.
+            psi: weight ansatz vector (w).
+        """
+
+
         n = self.n_wires
 
         # Hadamard Test
         def HtestReal(b, i, psi):
+
+            """
+            Computes the expectation <b|M_i|psi> using the Hadamard test.
+
+            Args:
+            b: training data embedding vector.
+            i: the pauli matricies to apply, encoded in base 4.
+            psi: weight ansatz vector (w).
+            """
+
+
             qml.Hadamard(wires=0)
             b = b / np.linalg.norm(b)
             psi = psi / np.linalg.norm(psi)
@@ -94,6 +130,16 @@ class VQLS(ForecastingMethod):
 
         # Hadamard test to compute the solution norm
         def HtestRealNorm(i1, i2, psi):
+            
+            """
+            Computes the expectation <psi|M_i2|M_i1|psi> using the Hadamard test.
+
+            Args:
+            i1: the first pauli matricies to apply, encoded in base 4.
+            i2: the secound pauli matricies to apply, encoded in base 4.
+            psi: weight ansatz vector (w).
+            """
+
             qml.Hadamard(wires=0)
             psi = psi / np.linalg.norm(psi)
 
@@ -105,6 +151,7 @@ class VQLS(ForecastingMethod):
             qml.Hadamard(wires=0)
 
             return qml.expval(qml.Z(0))
+
 
         # QNodes
         dev = qml.device("default.qubit", wires=self.n_wires + 1)
@@ -133,7 +180,7 @@ class VQLS(ForecastingMethod):
                     Ui = np.kron(Ui, np.array([[1, 0], [0, -1]]))
                 ii = np.floor(ii / 4)
 
-            trace = np.trace(np.matmul(Ui, U))
+            trace = np.trace(np.matmul(Ui, M))
             alpha = 2.0**-n * trace
 
             # Do Hadamard test
@@ -142,6 +189,7 @@ class VQLS(ForecastingMethod):
                 real = HTEST(b, i, psi)
             exp = exp + alpha * real
 
+            #compute weight for this i
             for i2 in range(4**n):
                 # Compute coefficient
                 Ui = [1]
@@ -157,7 +205,7 @@ class VQLS(ForecastingMethod):
                         Ui = np.kron(Ui, np.array([[1, 0], [0, -1]]))
                     ii = np.floor(ii / 4)
 
-                trace = np.trace(np.matmul(Ui, U))
+                trace = np.trace(np.matmul(Ui, M))
                 alpha2 = 2.0**-n * trace
 
                 # Do Hadamard test
@@ -168,7 +216,13 @@ class VQLS(ForecastingMethod):
         return exp / np.sqrt(normalize)
 
     def __angles_to_vector(self, psi_angles):  # hypersphere coordinates
-        # TODO: docstring
+         """
+            Converts n angles to n+1 vector magnitudes with a norm of 1. 
+
+            Args:
+            psi_angles: n angles which encode n+1 vector magnitudes.
+            """
+
         n = len(psi_angles)
 
         psi = []
@@ -185,10 +239,19 @@ class VQLS(ForecastingMethod):
         psi.append(val)
         return psi
 
-    def __compute_product_angles(self, b, U, psi_angles):
-        # TODO: docstring
+
+
+    def __compute_product_angles(self, b, M, psi_angles):
+         """
+            Wrapper of __compute_product() that takes in angles instead of vector magnitude. Used for training using n-1 inputs. 
+
+            Args:
+            b: training data embedding vector.
+            M: trainging data matrix.
+            psi: weight ansatz angles (w).
+            """
         psi = self.__angles_to_vector(psi_angles)
-        return self.__compute_product(b, U, psi)
+        return self.__compute_product(b, M, psi)
 
     @property
     def mse_iterations(self) -> list[float]:
