@@ -45,23 +45,7 @@ class PQC(ForecastingMethod):
             mse_iterations if mse_iterations is not None else []
         )
 
-    def save_model(self, filepath):
-        try:
-            data = {
-                "optimizer": self.optimizer,
-                "n_wires": self.n_wires,
-                "n_layers": self.n_layers,
-                "theta_ary": self.theta_ary,
-                "mse_iterations": self._mse_iterations,
-            }
-            with open(filepath + ".pkl", "wb") as f:
-                dump(data, f, protocol=5)
-        except Exception as e:
-            # print the error
-            print(f"Occurred following error: {e}")
-            return False
-        return True
-
+    @staticmethod
     def load_model(filepath):
         try:
             with open(filepath + ".pkl", "rb") as f:
@@ -82,6 +66,23 @@ class PQC(ForecastingMethod):
             # print the error
             print(f"Error loading model from {filepath}.pkl: {e}")
             return None
+
+    def save_model(self, filepath):
+        try:
+            data = {
+                "optimizer": self.optimizer,
+                "n_wires": self.n_wires,
+                "n_layers": self.n_layers,
+                "theta_ary": self.theta_ary,
+                "mse_iterations": self._mse_iterations,
+            }
+            with open(filepath + ".pkl", "wb") as f:
+                dump(data, f, protocol=5)
+        except Exception as e:
+            # print the error
+            print(f"Occurred following error: {e}")
+            return False
+        return True
 
     def __pqc_qnode(self, phi_ary: ndarray, theta_ary: ndarray):
         qnode = qml.QNode(self.__pqc_circuit, self.dev)
@@ -148,6 +149,13 @@ class PQC(ForecastingMethod):
             np.zeros(self.n_wires), self.theta_ary
         )
 
+    @property
+    def mse_iterations(self) -> list[float]:
+        """
+        Returns the MSE iterations for each training iteration.
+        """
+        return self._mse_iterations
+
     def train(self, train_X: ndarray, train_y: ndarray) -> None:
         # deep copy train_X and train_y
         train_X = copy.deepcopy(train_X)
@@ -194,13 +202,6 @@ class PQC(ForecastingMethod):
             prediction = self.__pqc_qnode(phi_ary, self.theta_ary)
             predictions.append(prediction)
         return np.array(predictions)
-
-    @property
-    def mse_iterations(self) -> list[float]:
-        """
-        Returns the MSE iterations for each training iteration.
-        """
-        return self._mse_iterations
 
 
 def train():
