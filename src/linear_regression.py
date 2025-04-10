@@ -99,24 +99,40 @@ class LinearRegression(ForecastingMethod):
 
 def train():
     """
-    Train the linear regression model on the paper data
+    Train the linear regression models on the paper data
     """
     models = [
         (
             "Linear Regression with Y-Intercept",
             "linear_regression",
             True,
+            None,
+            WINDOW_SIZE,
+        ),
+        (
+            "Linear Regression with L1 Regularization",
+            "linear_regression_l1",
+            True,
+            "l1",
+            WINDOW_SIZE,
+        ),
+        (
+            "Linear Regression with L2 Regularization",
+            "linear_regression_l2",
+            True,
+            "l2",
             WINDOW_SIZE,
         ),
         (
             "Linear Regression with VQLS Window Size",
             "linear_regression_vqls",
             False,
+            None,
             2**VQLS_WIRES,
         ),
     ]
 
-    for name, model_file, fit_intercept, window_size in models:
+    for name, model_file, fit_intercept, regularization, window_size in models:
         print(f"\nTraining {name}...")
 
         _, _, X_train, X_test, y_train, y_test, _, _, _, _ = get_paper_data(
@@ -124,7 +140,9 @@ def train():
         )
 
         # Train the model
-        lr = LinearRegression(fit_intercept=fit_intercept, regularization=None)
+        lr = LinearRegression(
+            fit_intercept=fit_intercept, regularization=regularization
+        )
         lr.train(X_train, y_train)
         lr.save_model(f"../models/{model_file}")
 
