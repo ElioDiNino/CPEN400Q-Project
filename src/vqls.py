@@ -331,7 +331,6 @@ def train():
     """
     Train the VQLS model on the paper data
     """
-    QUBITS = 3
     print("\nTraining VQLS...")
 
     _, X_train, X_test, y_train, y_test, _ = get_paper_data(
