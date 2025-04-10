@@ -159,5 +159,6 @@ This will train all the models and save them in the [`models`](models/) director
   - [Abstract base class for models](src/abstract.py)
   - [Dataset loading, preprocessing, and postprocessing](src/abstract.py)
   - [Parameterized Quantum Circuit (PQC) Implementation](src/pqc.py)
+  - [Load and save model functions](src/abstract.py)
   - [Trained PQC models](models/)
   - [Demo notebook](src/demo.ipynb)
