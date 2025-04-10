@@ -4,7 +4,7 @@ import numpy as np
 from scipy.optimize import minimize
 from numpy import ndarray
 
-from common import get_paper_data
+from common import MAX_ITERATIONS, get_paper_data
 from abstract import ForecastingMethod
 from pickle import dump, load
 
@@ -50,7 +50,7 @@ class PQC(ForecastingMethod):
     @staticmethod
     def load_model(filepath):
         try:
-            with open(filepath + ".pkl", "rb") as f:
+            with open(filepath, "rb") as f:
                 data = load(f)
                 optimizer = data["optimizer"]
                 n_wires = data["n_wires"]
@@ -67,8 +67,7 @@ class PQC(ForecastingMethod):
                     max_iterations=max_iterations,
                 )
         except Exception as e:
-            # print the error
-            print(f"Error loading model from {filepath}.pkl: {e}")
+            print(f"Error loading model from {filepath}: {e}")
             return None
 
     def save_model(self, filepath):
@@ -84,7 +83,6 @@ class PQC(ForecastingMethod):
             with open(filepath + ".pkl", "wb") as f:
                 dump(data, f, protocol=5)
         except Exception as e:
-            # print the error
             print(f"Occurred following error: {e}")
             return False
         return True
@@ -191,7 +189,7 @@ class PQC(ForecastingMethod):
             iteration_count += 1
 
             # COBYLA optimizer calls callback with the initial guess
-            # and no optimizations should ignore
+            # and no optimizations, so we ignore that iteration
             if self.optimizer == "COBYLA" and iteration_count == 1:
                 return
             self._mse_iterations.append(cost_function(mse))
@@ -232,20 +230,20 @@ def train():
 
     print("\nTraining PQC...")
 
-    _, X_train, X_test, y_train, y_test, _ = get_paper_data()
+    _, _, X_train, X_test, y_train, y_test, _, _, _, _ = get_paper_data()
 
     # Train the models
     pqc_model_lbfgsb = PQC(
         n_wires=N_WIRES,
         n_layers=N_LAYERS,
         optimizer="L-BFGS-B",
-        max_iterations=1000,
+        max_iterations=MAX_ITERATIONS,
     )
     pqc_model_cobyla = PQC(
         n_wires=N_WIRES,
         n_layers=N_LAYERS,
         optimizer="COBYLA",
-        max_iterations=1000,
+        max_iterations=MAX_ITERATIONS,
     )
     pqc_model_lbfgsb.train(X_train, y_train)
     pqc_model_cobyla.train(X_train, y_train)
