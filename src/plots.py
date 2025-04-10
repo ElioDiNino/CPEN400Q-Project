@@ -24,6 +24,20 @@ defs: dict[int, list[tuple[str, str, ForecastingMethod, str, str]]] = {
             "-.",
             "lime",
         ),
+        (
+            "Linear Regression with L1 Regularization",
+            "linear_regression_l1",
+            LinearRegression,
+            "-.",
+            "lime",
+        ),
+        (
+            "Linear Regression with L2 Regularization",
+            "linear_regression_l2",
+            LinearRegression,
+            "-.",
+            "lime",
+        ),
         ("Neural Network", "neural_network", NeuralNetwork, ":", "firebrick"),
         ("PQC with L-BFGS-B", "pqc_lbfgsb", PQC, "-", "blue"),
         ("PQC with COBYLA", "pqc_cobyla", PQC, "--", "red"),
@@ -100,10 +114,10 @@ for scale in ["linear", "log"]:
     plot_loss(
         list(range(MAX_ITERATIONS)),
         losses[0],
-        losses[1],
-        losses[2],
         losses[3],
         losses[4],
+        losses[5],
+        losses[6],
         save_path=f"../plots/losses_{scale}.png",
         yscale=scale,
     )
@@ -111,9 +125,9 @@ for scale in ["linear", "log"]:
 plot_loss(
     list(range(MAX_ITERATIONS)),
     losses[0],
-    losses[1],
-    losses[2],
-    None,
+    losses[3],
     losses[4],
+    None,
+    losses[6],
     save_path="../plots/losses_linear_no_cobyla.png",
 )
