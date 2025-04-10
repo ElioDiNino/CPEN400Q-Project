@@ -1,6 +1,7 @@
 from linear_regression import train as lr_train
 from neural_network import train as nn_train
 from pqc import train as pqc_train
+from vqls import train as vqls_train
 import time
 
 if __name__ == "__main__":
@@ -8,6 +9,7 @@ if __name__ == "__main__":
         ("Linear Regression", lr_train),
         ("Neural Network", nn_train),
         ("PQC", pqc_train),
+        ("VQLS", vqls_train),
     ]
 
     for name, func in training_functions:
