@@ -6,7 +6,7 @@ from sklearn.linear_model import (
 )
 from sklearn.model_selection import GridSearchCV
 
-from common import get_paper_data
+from common import WINDOW_SIZE, VQLS_WIRES, get_paper_data
 from abstract import ForecastingMethod
 
 
@@ -101,18 +101,36 @@ def train():
     """
     Train the linear regression model on the paper data
     """
-    print("\nTraining Linear Regression...")
+    models = [
+        (
+            "Linear Regression with Y-Intercept",
+            "linear_regression",
+            True,
+            WINDOW_SIZE,
+        ),
+        (
+            "Linear Regression with VQLS Window Size",
+            "linear_regression_vqls",
+            False,
+            2**VQLS_WIRES,
+        ),
+    ]
 
-    _, X_train, X_test, y_train, y_test, _ = get_paper_data()
+    for name, model_file, fit_intercept, window_size in models:
+        print(f"\nTraining {name}...")
 
-    # Train the model
-    lr = LinearRegression(fit_intercept=True, regularization=None)
-    lr.train(X_train, y_train)
-    lr.save_model("../models/linear_regression")
+        _, _, X_train, X_test, y_train, y_test, _, _, _, _ = get_paper_data(
+            window_size=window_size
+        )
 
-    # Evaluate the model
-    print(f"Training Loss (MSE): {lr.score(X_train, y_train)}")
-    print(f"Testing Loss (MSE): {lr.score(X_test, y_test)}")
+        # Train the model
+        lr = LinearRegression(fit_intercept=fit_intercept, regularization=None)
+        lr.train(X_train, y_train)
+        lr.save_model(f"../models/{model_file}")
+
+        # Evaluate the model
+        print(f"Training Loss (MSE): {lr.score(X_train, y_train)}")
+        print(f"Testing Loss (MSE): {lr.score(X_test, y_test)}")
 
 
 if __name__ == "__main__":
