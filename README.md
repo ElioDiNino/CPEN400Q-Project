@@ -95,7 +95,7 @@ Finally, we created a plotting script that generates the final plots for our rep
 ### Limitations
 
 - For linear regression, `scikit-learn` does not give any way for us to get the mean squared error (MSE) when it uses gradient descent to optimize the weights. Luckily, this is only applicable to L1 regularization (since direct solve is used for L2 and no regularization) and we found that L1 only used one iteration on the paper's dataset anyway, but this is something to keep in mind if we were to use a different dataset.
-- For VQLS, we initially used `SciPy`'s default `L-BFGS-B` optimizer, but it converged way too slowly (roughly 25 minutes for 2 qubits). We switched to `COBYLA`, which is a derivative-free optimizer, and it converged much faster (roughly 10 minutes for 2 qubits), but with a small decrease in accuracy since we had to increase the tolerance at the same time. Regardless though, the training time is still very long and grows exponentially with the number of qubits due to the algorithm and complexity of simulating more qubits.
+- For VQLS, we initially used `SciPy`'s default `L-BFGS-B` optimizer, but it converged way too slowly (roughly 25 minutes for 2 qubits). We switched to `COBYLA`, which is a gradient-free optimizer, and it converged much faster (roughly 10 minutes for 2 qubits), but with a small decrease in accuracy since we had to increase the tolerance at the same time. Regardless though, the training time is still very long and grows exponentially with the number of qubits due to the algorithm and complexity of simulating more qubits. Since the paper did not get VQLS working, we decided to only train it with 2 qubits and compare it against linear regression with the same window size to prove correctness.
 
 ## Instructions
 
