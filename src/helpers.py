@@ -105,7 +105,6 @@ def plot_loss(
 
     plt.xticks(range(0, len(iterations), 100))  # Show every 100th iteration
     plt.xlim([0, len(iterations) - 1])  # Remove padding from either side
-    # plt.ylim(bottom=0)  # Start y-axis from 0
     plt.yscale(yscale)  # Set y-axis scale
     plt.legend(loc="upper right")
     plt.grid()
