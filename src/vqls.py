@@ -308,7 +308,9 @@ class VQLS(ForecastingMethod):
             self.__mse_iterations.append(mse)
             print(f"Iteration {len(cost_history)} - cost: {c}, mse: {mse}")
 
-        result = scipy.optimize.minimize(cost, x0, callback=callback, tol=1e-8)
+        result = scipy.optimize.minimize(
+            cost, x0, callback=callback, tol=1e-3, method="COBYLA"
+        )
 
         wv = np.array(self.__angles_to_vector(result.x))
         print("Ansatz vector:", wv)
@@ -329,10 +331,11 @@ def train():
     """
     Train the VQLS model on the paper data
     """
+    QUBITS = 3
     print("\nTraining VQLS...")
 
-    _, _, X_train, X_test, y_train, y_test, _, _, _, _ = get_paper_data(
-        window_size=2**VQLS_WIRES
+    _, X_train, X_test, y_train, y_test, _ = get_paper_data(
+        window_size=2**VQLS_WIRES,
     )
 
     # Train the model
