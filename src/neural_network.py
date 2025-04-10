@@ -39,6 +39,7 @@ class NeuralNetwork(ForecastingMethod):
         model.compile(optimizer="adam", loss="mse")
         return model
 
+    @property
     def mse_iterations(self) -> list[float]:
         return self.__mse_iterations
 
@@ -59,7 +60,7 @@ def train():
     """
     print("\nTraining Neural Network...")
 
-    _, X_train, X_test, y_train, y_test, _ = get_paper_data()
+    _, _, X_train, X_test, y_train, y_test, _, _, _, _ = get_paper_data()
 
     # Train the model
     nn = NeuralNetwork(epochs=300)
