@@ -4,6 +4,7 @@ import csv
 import numpy as np
 from sklearn.metrics import mean_squared_error
 from pickle import dump, load
+from typing import Union
 
 
 class ForecastingMethod(ABC):
@@ -201,7 +202,7 @@ class ForecastingMethod(ABC):
         return data
 
     @staticmethod
-    def load_model(filepath: str) -> "ForecastingMethod" | None:
+    def load_model(filepath: str) -> Union["ForecastingMethod", None]:
         """
         Load and return a saved model from a file.
 

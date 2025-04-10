@@ -1,5 +1,4 @@
 from numpy import ndarray
-from pickle import dump, load
 from sklearn.linear_model import (
     LinearRegression as SklearnLinearRegression,
     Ridge,
@@ -7,7 +6,7 @@ from sklearn.linear_model import (
 )
 from sklearn.model_selection import GridSearchCV
 
-from common import get_paper_data
+from common import WINDOW_SIZE, VQLS_WIRES, get_paper_data
 from abstract import ForecastingMethod
 
 
@@ -47,6 +46,11 @@ class LinearRegression(ForecastingMethod):
         self.cv_folds = cv_folds
         self.alphas = alphas
         self.model = None
+        self.__mse_iterations: list[float] = []
+
+    @property
+    def mse_iterations(self) -> list[float]:
+        return self.__mse_iterations
 
     def train(self, train_X: ndarray, train_y: ndarray) -> None:
         """
@@ -85,21 +89,9 @@ class LinearRegression(ForecastingMethod):
             grid_search.fit(train_X, train_y)
             self.model = grid_search.best_estimator_
 
-    def save_weights(self, filepath: str) -> bool:
-        try:
-            with open(filepath + ".pkl", "wb") as f:
-                dump(self.model, f, protocol=5)
-        except Exception:
-            return False
-        return True
-
-    def load_weights(self, filepath: str) -> bool:
-        try:
-            with open(filepath, "rb") as f:
-                self.model = load(f)
-        except FileNotFoundError:
-            return False
-        return True
+        # All the variations only use a single iteration of training
+        # See the README for limitation details
+        self.__mse_iterations = [self.score(train_X, train_y)]
 
     def predict(self, X: ndarray) -> ndarray:
         return self.model.predict(X)
@@ -109,18 +101,36 @@ def train():
     """
     Train the linear regression model on the paper data
     """
-    print("\nTraining Linear Regression...")
+    models = [
+        (
+            "Linear Regression with Y-Intercept",
+            "linear_regression",
+            True,
+            WINDOW_SIZE,
+        ),
+        (
+            "Linear Regression with VQLS Window Size",
+            "linear_regression_vqls",
+            False,
+            2**VQLS_WIRES,
+        ),
+    ]
 
-    _, X_train, X_test, y_train, y_test, _ = get_paper_data()
+    for name, model_file, fit_intercept, window_size in models:
+        print(f"\nTraining {name}...")
 
-    # Train the model
-    lr = LinearRegression(fit_intercept=True, regularization=None)
-    lr.train(X_train, y_train)
-    lr.save_weights("../models/linear_regression")
+        _, _, X_train, X_test, y_train, y_test, _, _, _, _ = get_paper_data(
+            window_size=window_size
+        )
 
-    # Evaluate the model
-    print(f"Training Loss (MSE): {lr.score(X_train, y_train)}")
-    print(f"Testing Loss (MSE): {lr.score(X_test, y_test)}")
+        # Train the model
+        lr = LinearRegression(fit_intercept=fit_intercept, regularization=None)
+        lr.train(X_train, y_train)
+        lr.save_model(f"../models/{model_file}")
+
+        # Evaluate the model
+        print(f"Training Loss (MSE): {lr.score(X_train, y_train)}")
+        print(f"Testing Loss (MSE): {lr.score(X_test, y_test)}")
 
 
 if __name__ == "__main__":

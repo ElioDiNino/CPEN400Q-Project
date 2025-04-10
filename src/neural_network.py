@@ -22,6 +22,7 @@ class NeuralNetwork(ForecastingMethod):
         self.epochs = epochs
         self.batch_size = batch_size
         self.model: keras.Sequential | None = None
+        self.__mse_iterations: list[float] = []
 
     def __build_model(self) -> keras.Sequential:
         """
@@ -38,25 +39,16 @@ class NeuralNetwork(ForecastingMethod):
         model.compile(optimizer="adam", loss="mse")
         return model
 
+    @property
+    def mse_iterations(self) -> list[float]:
+        return self.__mse_iterations
+
     def train(self, train_X: ndarray, train_y: ndarray) -> None:
         self.model = self.__build_model()
         self.model.fit(
             train_X, train_y, epochs=self.epochs, batch_size=self.batch_size
         )
-
-    def save_weights(self, filepath: str) -> bool:
-        try:
-            self.model.save(filepath + ".keras")
-            return True
-        except Exception:
-            return False
-
-    def load_weights(self, filepath: str) -> bool:
-        try:
-            self.model = keras.saving.load_model(filepath)
-            return True
-        except Exception:
-            return False
+        self.__mse_iterations = self.model.history.history["loss"]
 
     def predict(self, X: ndarray) -> ndarray:
         return self.model.predict(X).flatten()
@@ -68,12 +60,12 @@ def train():
     """
     print("\nTraining Neural Network...")
 
-    _, X_train, X_test, y_train, y_test, _ = get_paper_data()
+    _, _, X_train, X_test, y_train, y_test, _, _, _, _ = get_paper_data()
 
     # Train the model
-    nn = NeuralNetwork()
+    nn = NeuralNetwork(epochs=300)
     nn.train(X_train, y_train)
-    nn.save_weights("../models/neural_network")
+    nn.save_model("../models/neural_network")
 
     # Evaluate the model
     print(f"Training Loss (MSE): {nn.score(X_train, y_train)}")
