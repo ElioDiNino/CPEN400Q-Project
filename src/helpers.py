@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 from datetime import date
 from dateutil.relativedelta import relativedelta
+from numpy import ndarray
 import numpy as np
 
 from common import WINDOW_SIZE
@@ -117,15 +118,15 @@ def plot_loss(
 
 def plot_sales_growth(
     start_date: date,
-    sales_growth,
-    sales_growth_pred,
-    pred_label="Predicted",
-    pred_linestyle=None,
-    pred_color="red",
+    sales_growth: list[float] | ndarray,
+    sales_growth_pred: list[float] | ndarray,
+    pred_label: str = "Predicted",
+    pred_linestyle: str | tuple = None,
+    pred_color: str = "red",
     title: str = "",
-    train_test_split=None,
-    window_size=WINDOW_SIZE,
-    save_path=None,
+    train_test_split: int = None,
+    window_size: int = WINDOW_SIZE,
+    save_path: str = None,
 ):
     """
     Plot sales growth over time.
