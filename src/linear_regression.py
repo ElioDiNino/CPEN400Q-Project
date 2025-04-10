@@ -21,7 +21,7 @@ class LinearRegression(ForecastingMethod):
         fit_intercept: bool = True,
         regularization: str | None = None,
         cv_folds: int | None = 5,
-        alphas: list[float] = [0.01, 0.1, 1, 10, 100],
+        alphas: list[float] = [0.01, 0.1, 0.3, 1, 5, 10],
     ):
         """
         Initialize the Linear Regression model.
