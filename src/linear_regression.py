@@ -48,6 +48,7 @@ class LinearRegression(ForecastingMethod):
         self.model = None
         self.__mse_iterations: list[float] = []
 
+    @property
     def mse_iterations(self) -> list[float]:
         return self.__mse_iterations
 
