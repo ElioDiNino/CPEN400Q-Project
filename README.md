@@ -136,9 +136,13 @@ This will train all the models and save them in the [`models`](models/) director
 - **Cihan Bosnali**
   - [Abstract base class for models](src/abstract.py)
   - [Neural network implementation](src/neural_network.py)
+  - [Presentation slides](documents/presentation.pdf)
+  - [Final report](documents/report.pdf)
 - **Dante Prins**
   - [Data collection](data/paper-data.csv)
   - [Variational Quantum Linear Solver (VQLS) implementation](src/vqls.py)
+  - [Presentation slides](documents/presentation.pdf)
+  - [Final report](documents/report.pdf)
 - **Elio Di Nino**
   - Repository setup
     - [`gitignore`](.gitignore)
@@ -155,6 +159,8 @@ This will train all the models and save them in the [`models`](models/) director
   - [Trained linear regression, neural network, and VQLS models](models/)
   - [Plot generation script](src/plots.py)
   - [All README documentation](README.md)
+  - [Presentation slides](documents/presentation.pdf)
+  - [Final report](documents/report.pdf)
 - **Richard Sun**
   - [Abstract base class for models](src/abstract.py)
   - [Dataset loading, preprocessing, and postprocessing](src/abstract.py)
@@ -162,3 +168,5 @@ This will train all the models and save them in the [`models`](models/) director
   - [Load and save model functions](src/abstract.py)
   - [Trained PQC models](models/)
   - [Demo notebook](src/demo.ipynb)
+  - [Presentation slides](documents/presentation.pdf)
+  - [Final report](documents/report.pdf)
